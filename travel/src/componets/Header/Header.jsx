@@ -3,7 +3,7 @@ import React from 'react'
 const Header = () => {
   return (
      <>
-     <div className='text-red-300'>
+     <div className='w-full h-20 border-1'>
        Header
      </div>
      </>

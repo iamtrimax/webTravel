@@ -2,8 +2,9 @@ import React from 'react'
 
 const Footer = () => {
   return (
-    <div>Footer</div>
-  )
+     <div className='w-full h-20 border-1 absolute bottom-0'>
+       footer
+     </div>  )
 }
 
 export default Footer
