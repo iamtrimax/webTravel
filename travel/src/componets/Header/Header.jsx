@@ -1,13 +1,99 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import './Header.scss';
+const Header = ({ onAuthClick, user, onLogout }) => {
+  const [activeTab, setActiveTab] = useState('RẠP PHIM');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
-const Header = () => {
+  const navItems = [
+    { label: 'Đặt Tour', path: '/' },
+    { label: 'VÉ CỦA TÔI', path: '/my-ticket' },
+    { label: 'Trải Nghiệm ', path: '/blog-phim' }
+  ];
+  // Cập nhật activeTab khi location thay đổi
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const activeItem = navItems.find(item => item.path === currentPath);
+    if (activeItem) {
+      setActiveTab(activeItem.label);
+    }
+  }, [location, navItems]);
+
   return (
-     <>
-     <div className='w-full h-20 border-1'>
-       Header
-     </div>
-     </>
-  )
-}
+    <header className="cinene-header">
+      <div className="header-top">
+        <div className="container">
+          <div className="logo-container">
+            <Link to="/" className="logo">
+              <span className="logo-c">T</span>
+              <span className="logo-i">R</span>
+              <span className="logo-n">A</span>
+              <span className="logo-e">V</span>
+              <span className="logo-n2">E</span>
+              <span className="logo-e2">L</span>
+            </Link>
+          </div>
 
-export default Header
+          <div className="auth-buttons">
+            {user ? (
+              <div className="user-info">
+                <span className="user-name">👤 {user.fullName}</span>
+                <button className="logout-btn" onClick={onLogout}>
+                  ĐĂNG XUẤT
+                </button>
+              </div>
+            ) : (
+              <>
+                <button className="auth-btn login-btn" onClick={() => onAuthClick('login')}>
+                  <span className="btn-icon">👤</span>
+                  <span className="btn-text">ĐĂNG NHẬP</span>
+                </button>
+                <button className="auth-btn register-btn" onClick={() => onAuthClick('register')}>
+                  <span className="btn-icon">✍️</span>
+                  <span className="btn-text">ĐĂNG KÝ</span>
+                </button>
+              </>
+            )}
+          </div>
+
+          <button
+            className="mobile-menu-toggle"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? '✕' : '☰'}
+          </button>
+        </div>
+      </div>
+
+      <div className={`header-bottom ${isMenuOpen ? 'open' : ''}`}>
+        <div className="container">
+          <nav className="main-nav">
+            <ul>
+              {navItems.map((item, index) => (
+                <li
+                  key={index}
+                  className={activeTab === item.label ? 'active' : ''}
+                  onClick={() => setActiveTab(item.label)}
+                >
+                  <Link to={item.path}>
+                    {item.label}
+                    <span className="nav-underline"></span>
+                    <span className="nav-hover-effect"></span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div className="header-decoration">
+        <div className="film-strip"></div>
+        <div className="spotlight"></div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;

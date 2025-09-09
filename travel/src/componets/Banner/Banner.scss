@@ -1,0 +1,480 @@
+
+$primary-color: #ffcc00;
+$secondary-color: #2c3e50;
+$accent-color: #e74c3c;
+$text-color: #fff;
+$overlay-color: rgba(0, 0, 0, 0.5);
+$transition-time: 0.6s;
+$easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin absolute-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@mixin text-shadow {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.banner {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  @include flex-center;
+  perspective: 1000px;
+  transition: transform 0.1s ease-out;
+
+  .banner-background {
+    @include absolute-cover;
+    
+    .background-slide {
+      @include absolute-cover;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 1.2s $easing, transform 12s linear;
+      z-index: 0;
+      transform: scale(1.1);
+      
+      &.active {
+        opacity: 1;
+        transform: scale(1);
+      }
+      
+      &::after {
+        content: "";
+        @include absolute-cover;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
+        z-index: 1;
+      }
+    }
+    
+    .parallax-overlay {
+      @include absolute-cover;
+      background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.6) 100%);
+      z-index: 2;
+      pointer-events: none;
+      transition: transform 0.5s ease-out;
+    }
+  }
+
+  .banner-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    color: $text-color;
+    max-width: 900px;
+    padding: 0 2rem;
+    
+    .content-inner {
+      transform: translateY(0);
+      transition: transform 0.8s $easing;
+    }
+
+    .title {
+      font-size: 3.8rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.15;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s $easing;
+      @include text-shadow;
+      
+      &.visible {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+      }
+    }
+
+    .description {
+      font-size: 1.5rem;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s $easing 0.2s;
+      @include text-shadow;
+      
+      &.visible {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+      }
+    }
+
+    .btn-container {
+      @include flex-center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s $easing 0.4s;
+      
+      &.visible {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+      }
+      
+      .btn {
+        position: relative;
+        padding: 1.1rem 2.2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: all 0.4s $easing;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        
+        span {
+          position: relative;
+          z-index: 2;
+        }
+        
+        &.primary {
+          background: $primary-color;
+          color: #000;
+          
+          .btn-hover-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s $easing;
+          }
+          
+          &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            
+            .btn-hover-effect {
+              opacity: 1;
+            }
+          }
+        }
+        
+        &.secondary {
+          background: transparent;
+          color: $text-color;
+          border: 2px solid rgba(255, 255, 255, 0.4);
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-5px);
+            
+            i {
+              transform: translateX(4px);
+            }
+          }
+          
+          i {
+            margin-left: 8px;
+            transition: transform 0.3s $easing;
+          }
+        }
+      }
+    }
+  }
+
+  .banner-features {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    @include flex-center;
+    gap: 2.5rem;
+    padding: 0 2rem;
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      padding: 1rem 1.8rem;
+      border-radius: 50px;
+      color: $text-color;
+      font-weight: 500;
+      animation: fadeInUp 1s $easing 0.8s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s $easing;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-3px);
+      }
+      
+      .feature-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: $primary-color;
+        @include flex-center;
+        
+        i {
+          color: #000;
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+
+  .slide-indicators {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    gap: 0.8rem;
+    
+    .indicator {
+      width: 50px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      transition: background 0.3s $easing;
+      
+      &.active {
+        background: rgba(255, 255, 255, 0.6);
+        
+        .indicator-progress {
+          width: 100%;
+          animation: progress 5s linear;
+        }
+      }
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+    }
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    color: $text-color;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.8;
+    animation: fadeIn 1s $easing 1.2s forwards;
+    opacity: 0;
+    
+    span {
+      font-size: 0.9rem;
+      margin-bottom: 0.8rem;
+      letter-spacing: 2px;
+    }
+    
+    .mouse {
+      width: 26px;
+      height: 42px;
+      border: 2px solid $text-color;
+      border-radius: 15px;
+      position: relative;
+      
+      .wheel {
+        width: 3px;
+        height: 8px;
+        background: $text-color;
+        border-radius: 2px;
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: scrollWheel 2s infinite;
+      }
+    }
+  }
+  
+  .particles-container {
+    @include absolute-cover;
+    pointer-events: none;
+    z-index: 1;
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      animation: floatParticle linear infinite;
+    }
+  }
+}
+
+// Animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 0.8; }
+}
+
+@keyframes progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes scrollWheel {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(10px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(15px);
+  }
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+// Responsive design
+@media (max-width: 1200px) {
+  .banner {
+    .banner-content {
+      .title {
+        font-size: 3.2rem;
+      }
+      
+      .description {
+        font-size: 1.3rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 992px) {
+  .banner {
+    .banner-content {
+      .title {
+        font-size: 2.8rem;
+      }
+    }
+    
+    .banner-features {
+      flex-wrap: wrap;
+      bottom: 100px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .banner {
+    height: 90vh;
+    
+    .banner-content {
+      .title {
+        font-size: 2.4rem;
+      }
+      
+      .description {
+        font-size: 1.1rem;
+      }
+      
+      .btn-container {
+        flex-direction: column;
+        align-items: center;
+        
+        .btn {
+          width: 220px;
+        }
+      }
+    }
+    
+    .banner-features {
+      .feature-item {
+        padding: 0.8rem 1.2rem;
+        font-size: 0.9rem;
+        
+        .feature-icon {
+          width: 32px;
+          height: 32px;
+          
+          i {
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .banner {
+    .banner-content {
+      .title {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+      
+      .description {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+      }
+    }
+    
+    .banner-features {
+      flex-direction: column;
+      gap: 1rem;
+      bottom: 120px;
+    }
+    
+    .slide-indicators {
+      bottom: 180px;
+    }
+  }
+}
