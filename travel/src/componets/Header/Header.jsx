@@ -2,21 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Header.scss';
 const Header = ({ onAuthClick, user, onLogout }) => {
-  const [activeTab, setActiveTab] = useState('RẠP PHIM');
+  const [activeTab, setActiveTab] = useState('/');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
   const navItems = [
-    { label: 'Đặt Tour', path: '/' },
+    { label: 'Đặt Tour', path: '/booking' },
     { label: 'VÉ CỦA TÔI', path: '/my-ticket' },
-    { label: 'Trải Nghiệm ', path: '/blog-phim' }
+    { label: 'Trải Nghiệm ', path: '/blog-' }
   ];
   // Cập nhật activeTab khi location thay đổi
   useEffect(() => {
     const currentPath = location.pathname;
-    const activeItem = navItems.find(item => item.path === currentPath);
-    if (activeItem) {
-      setActiveTab(activeItem.label);
+    if (currentPath === '/') {
+      setActiveTab('/');
+      return;
+    } else {
+        const activeItem = navItems.find(item => item.path === currentPath);
+        if (activeItem) {
+          setActiveTab(activeItem.label);
+        }
     }
   }, [location, navItems]);
 

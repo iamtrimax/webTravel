@@ -16,7 +16,6 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   overflow: hidden;
   border-bottom: 1px solid rgba($primary-color, 0.2);
   .container {
-    
     max-width: 1500px;
     margin: 0 auto;
     padding: 0 2rem;
@@ -26,7 +25,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   .header-top {
     height: 20%;
-    padding: 1.2rem 0;
+    padding: 0.3rem 0;
     position: relative;
     z-index: 2;
   }
@@ -351,7 +350,6 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .header-bottom {
-      position: absolute;
       top: 100%;
       left: 0;
       width: 100%;
@@ -378,25 +376,25 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
     }
 
-    .auth-buttons {
+    .header-top{
+      .auth-buttons {
       position: absolute;
-      top: 100%;
-      right: 2rem;
-      flex-direction: column;
+      right: 5.2rem;
+      top: 10px;
       background: rgba($dark-color, 0.95);
       padding: 1rem;
       border-radius: 0 0 8px 8px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
       transform: translateY(-10px);
-      opacity: 0;
       transition: all 0.3s ease;
-      pointer-events: none;
+  
 
       &.show {
         transform: translateY(0);
         opacity: 1;
         pointer-events: all;
       }
+    }
     }
   }
 

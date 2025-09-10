@@ -1,4 +1,3 @@
-
 $primary-color: #ffcc00;
 $secondary-color: #2c3e50;
 $accent-color: #e74c3c;
@@ -36,7 +35,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
   .banner-background {
     @include absolute-cover;
-    
+
     .background-slide {
       @include absolute-cover;
       background-size: cover;
@@ -45,23 +44,31 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transition: opacity 1.2s $easing, transform 12s linear;
       z-index: 0;
       transform: scale(1.1);
-      
+
       &.active {
         opacity: 1;
         transform: scale(1);
       }
-      
+
       &::after {
         content: "";
         @include absolute-cover;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.7) 0%,
+          rgba(0, 0, 0, 0.4) 100%
+        );
         z-index: 1;
       }
     }
-    
+
     .parallax-overlay {
       @include absolute-cover;
-      background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.6) 100%);
+      background: radial-gradient(
+        circle at center,
+        transparent 30%,
+        rgba(0, 0, 0, 0.6) 100%
+      );
       z-index: 2;
       pointer-events: none;
       transition: transform 0.5s ease-out;
@@ -75,7 +82,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     color: $text-color;
     max-width: 900px;
     padding: 0 2rem;
-    
+
     .content-inner {
       transform: translateY(0);
       transition: transform 0.8s $easing;
@@ -90,7 +97,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transform: translateY(40px);
       transition: all 0.8s $easing;
       @include text-shadow;
-      
+
       &.visible {
         opacity: 1;
         transform: translateY(0) translateZ(0);
@@ -104,7 +111,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transform: translateY(30px);
       transition: all 0.8s $easing 0.2s;
       @include text-shadow;
-      
+
       &.visible {
         opacity: 1;
         transform: translateY(0) translateZ(0);
@@ -118,12 +125,12 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       opacity: 0;
       transform: translateY(20px);
       transition: all 0.8s $easing 0.4s;
-      
+
       &.visible {
         opacity: 1;
         transform: translateY(0) translateZ(0);
       }
-      
+
       .btn {
         position: relative;
         padding: 1.1rem 2.2rem;
@@ -136,52 +143,56 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         overflow: hidden;
         transition: all 0.4s $easing;
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-        
+
         span {
           position: relative;
           z-index: 2;
         }
-        
+
         &.primary {
           background: $primary-color;
           color: #000;
-          
+
           .btn-hover-effect {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+            background: linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.2) 0%,
+              transparent 100%
+            );
             opacity: 0;
             transition: opacity 0.4s $easing;
           }
-          
+
           &:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-            
+
             .btn-hover-effect {
               opacity: 1;
             }
           }
         }
-        
+
         &.secondary {
           background: transparent;
           color: $text-color;
           border: 2px solid rgba(255, 255, 255, 0.4);
-          
+
           &:hover {
             background: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.8);
             transform: translateY(-5px);
-            
+
             i {
               transform: translateX(4px);
             }
           }
-          
+
           i {
             margin-left: 8px;
             transition: transform 0.3s $easing;
@@ -200,7 +211,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     @include flex-center;
     gap: 2.5rem;
     padding: 0 2rem;
-    
+
     .feature-item {
       display: flex;
       align-items: center;
@@ -215,19 +226,19 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       opacity: 0;
       transform: translateY(20px);
       transition: all 0.3s $easing;
-      
+
       &:hover {
         background: rgba(255, 255, 255, 0.15);
         transform: translateY(-3px);
       }
-      
+
       .feature-icon {
         width: 36px;
         height: 36px;
         border-radius: 50%;
         background: $primary-color;
         @include flex-center;
-        
+
         i {
           color: #000;
           font-size: 1.1rem;
@@ -244,7 +255,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 4;
     display: flex;
     gap: 0.8rem;
-    
+
     .indicator {
       width: 50px;
       height: 4px;
@@ -255,16 +266,16 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       overflow: hidden;
       position: relative;
       transition: background 0.3s $easing;
-      
+
       &.active {
         background: rgba(255, 255, 255, 0.6);
-        
+
         .indicator-progress {
           width: 100%;
           animation: progress 5s linear;
         }
       }
-      
+
       &:hover {
         background: rgba(255, 255, 255, 0.5);
       }
@@ -284,20 +295,20 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     opacity: 0.8;
     animation: fadeIn 1s $easing 1.2s forwards;
     opacity: 0;
-    
+
     span {
       font-size: 0.9rem;
       margin-bottom: 0.8rem;
       letter-spacing: 2px;
     }
-    
+
     .mouse {
       width: 26px;
       height: 42px;
       border: 2px solid $text-color;
       border-radius: 15px;
       position: relative;
-      
+
       .wheel {
         width: 3px;
         height: 8px;
@@ -311,12 +322,12 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
     }
   }
-  
+
   .particles-container {
     @include absolute-cover;
     pointer-events: none;
     z-index: 1;
-    
+
     .particle {
       position: absolute;
       width: 4px;
@@ -341,13 +352,21 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 0.8; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.8;
+  }
 }
 
 @keyframes progress {
-  from { width: 0%; }
-  to { width: 100%; }
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 @keyframes scrollWheel {
@@ -389,7 +408,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       .title {
         font-size: 3.2rem;
       }
-      
+
       .description {
         font-size: 1.3rem;
       }
@@ -404,7 +423,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         font-size: 2.8rem;
       }
     }
-    
+
     .banner-features {
       flex-wrap: wrap;
       bottom: 100px;
@@ -415,35 +434,37 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 @media (max-width: 768px) {
   .banner {
     height: 90vh;
-    
+
     .banner-content {
-      .title {
-        font-size: 2.4rem;
+      .content-inner {
+        .title {
+          font-size: 2.4rem;
+          margin-top: -200px;
+        }
+
+        .description {
+          font-size: 1.1rem;
+        }
       }
-      
-      .description {
-        font-size: 1.1rem;
-      }
-      
+
       .btn-container {
         flex-direction: column;
         align-items: center;
-        
         .btn {
           width: 220px;
         }
       }
     }
-    
+
     .banner-features {
       .feature-item {
         padding: 0.8rem 1.2rem;
         font-size: 0.9rem;
-        
+
         .feature-icon {
           width: 32px;
           height: 32px;
-          
+
           i {
             font-size: 1rem;
           }
@@ -460,19 +481,19 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         font-size: 2rem;
         margin-bottom: 1rem;
       }
-      
+
       .description {
         font-size: 1rem;
         margin-bottom: 2rem;
       }
     }
-    
+
     .banner-features {
       flex-direction: column;
       gap: 1rem;
       bottom: 120px;
     }
-    
+
     .slide-indicators {
       bottom: 180px;
     }
