@@ -12,7 +12,7 @@ const Header = ({ onAuthClick, user, onLogout }) => {
     { label: 'Trải Nghiệm ', path: '/blog-' }
   ];
   // Cập nhật activeTab khi location thay đổi
-  useEffect(() => {
+  useEffect(() => {    
     const currentPath = location.pathname;
     if (currentPath === '/') {
       setActiveTab('/');
@@ -43,7 +43,7 @@ const Header = ({ onAuthClick, user, onLogout }) => {
           <div className="auth-buttons">
             {user ? (
               <div className="user-info">
-                <span className="user-name">👤 {user.fullName}</span>
+                <span className="user-name">👤 {user.username}</span>
                 <button className="logout-btn" onClick={onLogout}>
                   ĐĂNG XUẤT
                 </button>
