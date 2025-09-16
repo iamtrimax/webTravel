@@ -1,20 +1,22 @@
 import Footer from './componets/Footer/Footer'
 import Header from './componets/Header/Header'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import Context from './Context/Context';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, clearUser } from './Store/userSlice';
+import sumaryApi from './common';
 function App() {
-
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const navigator = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state?.user?.user);
   const onAuthClick = (path) => {
     navigator(path);
   }
-  const onLogOut = async() => {
-    const res = await fetch("http://localhost:3000/api/logout", {
-      method: "post",
+  const onLogOut = async () => {
+    const res = await fetch(sumaryApi.logout.url, {
+      method: sumaryApi.logout.method,
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${JSON.parse(localStorage.getItem("token"))}`
@@ -32,8 +34,8 @@ function App() {
 
     if (token) {
       // Call API to fetch user details
-      const res = await fetch("http://localhost:3000/api/userdetails", {
-        method: "GET",
+      const res = await fetch(sumaryApi.getUserDetails.url, {
+        method: sumaryApi.getUserDetails.method,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -55,8 +57,12 @@ function App() {
     <>
       <Context.Provider value={{ fetchUserDetails }}>
         <div className='flex flex-col min-h-screen'>
+          {
+            !isAdminRoute && (
 
-          <Header onAuthClick={onAuthClick} user={user} onLogout={onLogOut} />
+              <Header onAuthClick={onAuthClick} user={user} onLogout={onLogOut} />
+            )
+          }
           <main className='main'>
             <Outlet />
           </main>

@@ -6,6 +6,7 @@ import Booking from '../pages/Booking/Booking'
 import MyTickets from '../pages/MyTickets/MyTickets'
 import Login from '../pages/Login/Login'
 import SignUp from '../pages/SignUp/SignUP'
+import AdminDashboard from '../pages/AdminDashboard/AdminDashboard'
 
 const Routes = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const Routes = createBrowserRouter([
       {
         path: "register",
         element: <SignUp />,
+      },
+      {
+        path: "admin",
+        element: <AdminDashboard />,
       }
     ]
   }
