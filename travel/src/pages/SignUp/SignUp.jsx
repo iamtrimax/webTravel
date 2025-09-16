@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import sumaryApi from "../../common";
 
 // Component: RegisterForm
 // Usage: import RegisterForm from './RegisterForm_tailwind_react.jsx'
@@ -67,8 +68,8 @@ const SignUp = () => {
     if (Object.keys(validation).length === 0) {
       //api register
       try {
-        const res = await fetch('http://localhost:3000/api/register', {
-          method: 'POST',
+        const res = await fetch(sumaryApi.register.url, {
+          method: sumaryApi.register.method,
           headers: {
             'Content-Type': 'application/json',
           },
@@ -84,8 +85,6 @@ const SignUp = () => {
           setErrors(true)
           setSubmitError(true);
           setErrors(data.message || {});
-          console.log(data.message || "Đăng ký không thành công");
-
         }
       } catch (error) {
         console.error("Error:", error);

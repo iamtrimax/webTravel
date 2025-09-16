@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Context from "../../Context/Context";
 import socket from "../../Socket/Socket";
+import sumaryApi from "../../common";
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -26,8 +27,8 @@ const Login = () => {
 
     if (Object.keys(newErrors).length === 0) {
       // Gọi API đăng nhập tại đây
-      const res = await fetch("http://localhost:3000/api/login", {
-        method: "post",
+      const res = await fetch(sumaryApi.login.url, {
+        method: sumaryApi.login.method,
         headers: {
           "Content-Type": "application/json"
         },
@@ -53,7 +54,6 @@ const Login = () => {
         // Đăng nhập thất bại xử lý logic ở đây
         setErrors(data.message || {});
         setSubmitError(true);
-        console.log(data.message || "Đăng nhập không thành công");
       }
     }
   };
