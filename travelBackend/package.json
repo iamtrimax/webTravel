@@ -4,11 +4,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-<<<<<<< HEAD
     "dev" : "nodemon app.js"
-=======
-    "dev": "nodemon app.js"
->>>>>>> df9ff6835d857b61315a49f4ece977ed3b79be53
   },
   "author": "",
   "license": "ISC",
