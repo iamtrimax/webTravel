@@ -7,6 +7,9 @@ import MyTickets from '../pages/MyTickets/MyTickets'
 import Login from '../pages/Login/Login'
 import SignUp from '../pages/SignUp/SignUP'
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard'
+import AdminLogin from '../pages/AdminLogin/AdminLogin'
+import Page403 from '../pages/page403/page403'
+import AdminRoute from './AdminRoute'
 
 const Routes = createBrowserRouter([
   {
@@ -34,8 +37,16 @@ const Routes = createBrowserRouter([
         element: <SignUp />,
       },
       {
+        path: "403",
+        element: <Page403 />
+      },
+      {
+        path: "admin/login",
+        element: <AdminLogin />,
+      },
+      {
         path: "admin",
-        element: <AdminDashboard />,
+        element: (<AdminRoute><AdminDashboard /></AdminRoute>),
       }
     ]
   }

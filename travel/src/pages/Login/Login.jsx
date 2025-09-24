@@ -41,15 +41,8 @@ const Login = () => {
         navigator("/");
         fetchUserDetails();
         const userId = data.data._id;
+        socket.connect();
         socket.emit("register", userId);
-
-        // Nghe event "blocked"
-        socket.on("blocked", (data) => {
-          alert(data.message);
-          // clear token + logout
-          localStorage.removeItem("token");
-          window.location.href = "/login";
-        });
       } else {
         // Đăng nhập thất bại xử lý logic ở đây
         setErrors(data.message || {});

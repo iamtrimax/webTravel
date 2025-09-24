@@ -33,6 +33,9 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   perspective: 1000px;
   transition: transform 0.1s ease-out;
 
+  // Mobile First - Thêm min-height cho mobile
+  min-height: 500px;
+
   .banner-background {
     @include absolute-cover;
 
@@ -82,6 +85,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     color: $text-color;
     max-width: 900px;
     padding: 0 2rem;
+    width: 100%;
 
     .content-inner {
       transform: translateY(0);
@@ -111,6 +115,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transform: translateY(30px);
       transition: all 0.8s $easing 0.2s;
       @include text-shadow;
+      line-height: 1.4;
 
       &.visible {
         opacity: 1;
@@ -143,10 +148,12 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         overflow: hidden;
         transition: all 0.4s $easing;
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        min-width: 180px; // Thêm min-width cho nút
 
         span {
           position: relative;
           z-index: 2;
+          font-size: 1rem;
         }
 
         &.primary {
@@ -211,6 +218,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     @include flex-center;
     gap: 2.5rem;
     padding: 0 2rem;
+    flex-wrap: wrap; // Thêm flex-wrap
 
     .feature-item {
       display: flex;
@@ -226,6 +234,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       opacity: 0;
       transform: translateY(20px);
       transition: all 0.3s $easing;
+      flex-shrink: 0; // Ngăn không bị co lại
 
       &:hover {
         background: rgba(255, 255, 255, 0.15);
@@ -238,11 +247,17 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         border-radius: 50%;
         background: $primary-color;
         @include flex-center;
+        flex-shrink: 0; // Ngăn icon bị co lại
 
         i {
           color: #000;
           font-size: 1.1rem;
         }
+      }
+
+      span {
+        white-space: nowrap; // Ngăn chữ xuống dòng
+        font-size: 0.9rem;
       }
     }
   }
@@ -401,7 +416,9 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 }
 
-// Responsive design
+// ==================== RESPONSIVE DESIGN ====================
+
+// Tablet Landscape (992px - 1200px)
 @media (max-width: 1200px) {
   .banner {
     .banner-content {
@@ -413,89 +430,366 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         font-size: 1.3rem;
       }
     }
+    
+    .banner-features {
+      gap: 2rem;
+      
+      .feature-item {
+        padding: 0.9rem 1.5rem;
+        
+        span {
+          font-size: 0.85rem;
+        }
+      }
+    }
   }
 }
 
+// Tablet Portrait (768px - 992px)
 @media (max-width: 992px) {
   .banner {
+    height: 90vh;
+    
     .banner-content {
       .title {
         font-size: 2.8rem;
+        margin-bottom: 1.2rem;
       }
-    }
-
-    .banner-features {
-      flex-wrap: wrap;
-      bottom: 100px;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .banner {
-    height: 90vh;
-
-    .banner-content {
-      .content-inner {
-        .title {
-          font-size: 2.4rem;
-          margin-top: -200px;
-        }
-
-        .description {
-          font-size: 1.1rem;
-        }
+      
+      .description {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
       }
-
+      
       .btn-container {
-        flex-direction: column;
-        align-items: center;
         .btn {
-          width: 220px;
+          padding: 1rem 2rem;
+          min-width: 160px;
+          
+          span {
+            font-size: 0.95rem;
+          }
         }
       }
     }
 
     .banner-features {
+      bottom: 80px;
+      gap: 1.5rem;
+      
       .feature-item {
         padding: 0.8rem 1.2rem;
-        font-size: 0.9rem;
-
+        
+        span {
+          font-size: 0.8rem;
+        }
+        
         .feature-icon {
           width: 32px;
           height: 32px;
-
+          
           i {
             font-size: 1rem;
           }
         }
       }
     }
+    
+    .slide-indicators {
+      bottom: 25px;
+    }
   }
 }
 
-@media (max-width: 576px) {
+// Mobile Landscape (576px - 768px)
+@media (max-width: 768px) {
   .banner {
+    height: 85vh;
+    min-height: 450px;
+    
     .banner-content {
+      padding: 0 1.5rem;
+      
       .title {
-        font-size: 2rem;
+        font-size: 2.4rem;
+        line-height: 1.2;
         margin-bottom: 1rem;
       }
-
+      
       .description {
-        font-size: 1rem;
-        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        line-height: 1.4;
+        margin-bottom: 1.8rem;
+        padding: 0 1rem;
+      }
+      
+      .btn-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        
+        .btn {
+          width: 220px;
+          padding: 0.9rem 1.8rem;
+          margin: 0.2rem 0;
+          
+          span {
+            font-size: 0.9rem;
+          }
+        }
       }
     }
 
     .banner-features {
-      flex-direction: column;
+      bottom: 100px;
       gap: 1rem;
-      bottom: 120px;
+      padding: 0 1rem;
+      
+      .feature-item {
+        padding: 0.7rem 1rem;
+        border-radius: 40px;
+        
+        span {
+          font-size: 0.75rem;
+          white-space: nowrap;
+        }
+        
+        .feature-icon {
+          width: 28px;
+          height: 28px;
+          
+          i {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+    
+    .slide-indicators {
+      bottom: 70px;
+      
+      .indicator {
+        width: 40px;
+        height: 3px;
+      }
+    }
+    
+    .scroll-indicator {
+      bottom: 15px;
+      
+      span {
+        font-size: 0.8rem;
+      }
+      
+      .mouse {
+        width: 22px;
+        height: 36px;
+      }
+    }
+  }
+}
+
+// Mobile Portrait (480px - 576px)
+@media (max-width: 576px) {
+  .banner {
+    height: 80vh;
+    min-height: 400px;
+    
+    .banner-content {
+      padding: 0 1rem;
+      
+      .title {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+      }
+      
+      .description {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 0;
+      }
+      
+      .btn-container {
+        .btn {
+          width: 200px;
+          padding: 0.8rem 1.6rem;
+          
+          span {
+            font-size: 0.85rem;
+          }
+        }
+      }
     }
 
+    .banner-features {
+      bottom: 120px;
+      flex-direction: column;
+      gap: 0.8rem;
+      
+      .feature-item {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+        padding: 0.6rem 1rem;
+        
+        span {
+          font-size: 0.8rem;
+        }
+      }
+    }
+    
     .slide-indicators {
-      bottom: 180px;
+      bottom: 160px;
+      gap: 0.6rem;
+      
+      .indicator {
+        width: 35px;
+        height: 3px;
+      }
+    }
+    
+    .scroll-indicator {
+      display: none; // Ẩn scroll indicator trên mobile nhỏ
+    }
+    
+    .particles-container {
+      display: none; // Ẩn particles trên mobile để tối ưu hiệu suất
+    }
+  }
+}
+
+// Small Mobile (320px - 480px)
+@media (max-width: 480px) {
+  .banner {
+    height: 75vh;
+    min-height: 350px;
+    
+    .banner-content {
+      .title {
+        font-size: 1.8rem;
+      }
+      
+      .description {
+        font-size: 0.9rem;
+      }
+      
+      .btn-container {
+        .btn {
+          width: 180px;
+          padding: 0.7rem 1.4rem;
+          
+          span {
+            font-size: 0.8rem;
+          }
+        }
+      }
+    }
+
+    .banner-features {
+      bottom: 100px;
+      
+      .feature-item {
+        max-width: 250px;
+        padding: 0.5rem 0.8rem;
+        
+        span {
+          font-size: 0.75rem;
+        }
+        
+        .feature-icon {
+          width: 24px;
+          height: 24px;
+          
+          i {
+            font-size: 0.8rem;
+          }
+        }
+      }
+    }
+    
+    .slide-indicators {
+      bottom: 140px;
+    }
+  }
+}
+
+// Very Small Mobile (dưới 320px)
+@media (max-width: 320px) {
+  .banner {
+    height: 70vh;
+    min-height: 300px;
+    
+    .banner-content {
+      .title {
+        font-size: 1.6rem;
+      }
+      
+      .description {
+        font-size: 0.85rem;
+      }
+      
+      .btn-container {
+        .btn {
+          width: 160px;
+          padding: 0.6rem 1.2rem;
+        }
+      }
+    }
+
+    .banner-features {
+      .feature-item {
+        max-width: 220px;
+        
+        span {
+          font-size: 0.7rem;
+        }
+      }
+    }
+  }
+}
+
+// Xử lý chiều cao trên các thiết bị có chiều cao nhỏ
+@media (max-height: 600px) and (orientation: landscape) {
+  .banner {
+    height: 100vh;
+    min-height: 400px;
+    
+    .banner-content {
+      .title {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .description {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+      }
+    }
+    
+    .banner-features {
+      bottom: 50px;
+      gap: 1rem;
+      
+      .feature-item {
+        padding: 0.5rem 1rem;
+      }
+    }
+    
+    .slide-indicators {
+      bottom: 20px;
+    }
+  }
+}
+
+// Hỗ trợ cho tablet xoay ngang
+@media (max-width: 1024px) and (orientation: landscape) {
+  .banner {
+    height: 100vh;
+    
+    .banner-content {
+      .title {
+        font-size: 2.5rem;
+      }
     }
   }
 }

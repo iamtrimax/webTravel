@@ -3,7 +3,7 @@ const { userRegister, userLogin, userDetails, userLogout} = require("../controll
 const verifyAccessToken = require("../middleware/verifyAccessToken");
 const verifyAdmin = require("../middleware/verifyAdmin");
 const { createTour, getAllTours, updateTour } = require("../controller/tour.controller");
-const { blockedUser, unBlockedUser } = require("../controller/admin.controller");
+const { blockedUser, unBlockedUser, adminLogin, getAllUsers, createUser } = require("../controller/admin.controller");
 const route = express.Router();
 route.post("/register", userRegister);
 route.post("/login", userLogin);
@@ -11,6 +11,9 @@ route.get("/userdetails", verifyAccessToken, userDetails);
 route.post("/logout", verifyAccessToken, userLogout);
 
 //route admin
+route.post("/admin/login", adminLogin);
+route.get("/admin/users", verifyAccessToken, verifyAdmin, getAllUsers);
+route.post("/admin/user", verifyAccessToken, verifyAdmin, createUser);
 route.post("/admin/user/:id/block", verifyAccessToken, verifyAdmin ,blockedUser);
 route.post("/admin/user/:id/unblock", verifyAccessToken, verifyAdmin ,unBlockedUser);
 route.post("/admin/tour", verifyAccessToken, verifyAdmin, createTour);

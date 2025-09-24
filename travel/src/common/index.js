@@ -4,6 +4,10 @@ const sumaryApi = {
     url: `${url_api}/login`,
     method: "POST",
   },
+  adminLogin: {
+    url: `${url_api}/admin/login`,
+    method: "POST",
+  },
   register: {
     url: `${url_api}/register`,
     method: "POST",
@@ -35,6 +39,14 @@ const sumaryApi = {
   },
   unBlockUser: {
     url: `${url_api}/admin/user/:id/unblock`,
+    method: "POST",
+  },
+  getAllUsers: {
+    url: `${url_api}/admin/users`,
+    method: "GET",
+  },
+  createUser: {
+    url: `${url_api}/admin/user`,
     method: "POST",
   },
 };

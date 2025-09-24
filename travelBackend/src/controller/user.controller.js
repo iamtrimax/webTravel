@@ -68,7 +68,7 @@ const userRegister = asyncHandler(async (req, res) => {
 const userLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await userModel.findOne({ email });
+  const user = await userModel.findOne({ email, role: 'user' });
   if (!user) {
     res.status(400);
     throw new Error("Tài khoản không tồn tại");
@@ -141,4 +141,5 @@ module.exports = {
   userLogin,
   userDetails,
   userLogout,
+  generateAccessToken
 };

@@ -1,76 +1,67 @@
-import Footer from './componets/Footer/Footer'
-import Header from './componets/Header/Header'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Context from './Context/Context';
-import { useDispatch, useSelector } from 'react-redux';
-import { setUser, clearUser } from './Store/userSlice';
+import { useDispatch } from 'react-redux';
+import { setUser } from './Store/userSlice';
 import sumaryApi from './common';
+import Layout from './Layout/Layout';
+import LayoutAdmin from './Layout/LayoutAdmin';
+import socket from './Socket/Socket';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const navigator = useNavigate();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state?.user?.user);
-  const onAuthClick = (path) => {
-    navigator(path);
-  }
-  const onLogOut = async () => {
-    const res = await fetch(sumaryApi.logout.url, {
-      method: sumaryApi.logout.method,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${JSON.parse(localStorage.getItem("token"))}`
-      }
-    });
-    const data = await res.json();
-    if (data.success) {
-      localStorage.removeItem("token");
-      dispatch(clearUser());
-      navigator("/");
-    }
-  }
+  const [loadingUser, setLoadingUser] = useState(true);
+
   const fetchUserDetails = async () => {
-    const token = JSON.parse(localStorage.getItem("token"));
+    const token = localStorage.getItem("accessToken");
 
     if (token) {
-      // Call API to fetch user details
-      const res = await fetch(sumaryApi.getUserDetails.url, {
-        method: sumaryApi.getUserDetails.method,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+      try {
+        const res = await fetch(sumaryApi.getUserDetails.url, {
+          method: sumaryApi.getUserDetails.method,
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          dispatch(setUser(data.data));
+        } else {
+          console.log(data.message || "Failed to fetch user details");
         }
-      });
-      const data = await res.json();
-      if (data.success) {
-        // Handle success logic here
-        dispatch(setUser(data.data));
-      } else {
-        // Handle failure logic here
-        console.log(data.message || "Failed to fetch user details");
-        return null;
+      } catch (error) {
+        console.error("Error fetching user:", error);
       }
     }
-  }
+    setLoadingUser(false); // luôn set false sau khi gọi xong
+  };
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
+
+  useEffect(() => {
+    socket.on("blocked", (data) => {
+      alert(data.message);
+      localStorage.removeItem("accessToken");
+      window.location.href = "/";
+    });
+    return () => {
+      socket.off("blocked");
+    };
+  }, []);
 
   return (
-    <>
-      <Context.Provider value={{ fetchUserDetails }}>
-        <div className='flex flex-col min-h-screen'>
-          {
-            !isAdminRoute && (
-
-              <Header onAuthClick={onAuthClick} user={user} onLogout={onLogOut} />
-            )
-          }
-          <main className='main'>
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
-      </Context.Provider>
-    </>
-  )
+    <Context.Provider value={{ fetchUserDetails, loadingUser }}>
+      <ToastContainer position="top-right" />
+      {isAdminRoute ? <LayoutAdmin /> : <Layout />}
+    </Context.Provider>
+  );
 }
 
-export default App
+export default App;
