@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Header.scss';
+import MyTicketsModal from '../../pages/MyTickets/MyTicketsModal';
 const Header = ({ onAuthClick, user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('/');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-
   const navItems = [
     { label: 'Đặt Tour', path: '/booking' },
     { label: 'VÉ CỦA TÔI', path: '/my-ticket' },
@@ -26,6 +26,7 @@ const Header = ({ onAuthClick, user, onLogout }) => {
   }, [location, navItems]);
 
   return (
+    
     <header className="cinene-header">
       <div className="header-top">
         <div className="container">

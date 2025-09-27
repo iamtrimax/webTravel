@@ -3,7 +3,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import Home from '../pages/Home/Home'
 import App from '../App'
 import Booking from '../pages/Booking/Booking'
-import MyTickets from '../pages/MyTickets/MyTickets'
+import MyTicketsModal from '../pages/MyTickets/MyTicketsModal'
 import Login from '../pages/Login/Login'
 import SignUp from '../pages/SignUp/SignUP'
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard'
@@ -26,7 +26,7 @@ const Routes = createBrowserRouter([
       },
       {
         path: "my-ticket",
-        element: <MyTickets />,
+        element: <MyTicketsModal />,
       },
       {
         path: "login",
