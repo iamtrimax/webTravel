@@ -25,6 +25,7 @@ const UserManagement = () => {
   }, []);
 
   const fetchUsers = async () => {
+
     setLoading(true);
     try {
       // API call để lấy danh sách user - Thay bằng API thực tế
@@ -36,8 +37,6 @@ const UserManagement = () => {
         }
       });
       const data = await response.json();
-      console.log(data);
-
       setUsers(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
       console.error('Lỗi khi tải danh sách người dùng:', error);
@@ -59,15 +58,6 @@ const UserManagement = () => {
         password: newUser.password,
         role: newUser.role
       };
-
-      // Giả lập API response
-      // const addedUser = {
-      //   id: users.length + 1,
-      //   ...userData,
-      //   status: 'active',
-      //   createdAt: new Date().toISOString().split('T')[0],
-      //   lastLogin: null
-      // };
       const response = await fetch(sumaryApi.createUser.url, {
         method: sumaryApi.createUser.method,
         headers: {
@@ -104,23 +94,51 @@ const UserManagement = () => {
     if (!window.confirm('Bạn có chắc muốn xoá người dùng này?')) return;
 
     try {
-      // API call để xoá user - Thay bằng API thực tế
-      setUsers(users.filter(user => user.id !== userId));
-      alert('Xoá người dùng thành công!');
+      // API call để xoá user 
+      const response = await fetch(sumaryApi.deleteUser.url.replace(':id', userId), {
+        method: sumaryApi.deleteUser.method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      const data = await response.json();
+      console.log(data);
+      
+      if (data.error) {
+        toast.error(data.message);
+        return;
+      }
+      // Cập nhật lại danh sách user sau khi xoá
+      if (data.success) {
+        setUsers(users.filter(user => user._id !== userId));
+        toast.success(data.message);
+        // Tải lại danh sách người dùng từ server
+        fetchUsers()
+      }
     } catch (error) {
       console.error('Lỗi khi xoá người dùng:', error);
-      alert('Lỗi khi xoá người dùng!');
     }
   };
 
   // Xử lý cập nhật role
   const handleUpdateRole = async (userId, newRole) => {
     try {
-      // API call để cập nhật role - Thay bằng API thực tế
-      setUsers(users.map(user =>
-        user.id === userId ? { ...user, role: newRole } : user
-      ));
-      alert('Cập nhật quyền thành công!');
+      const response = await fetch(sumaryApi.updateRoleUser.url.replace(':id', userId), {
+        method: sumaryApi.updateRoleUser.method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success(data.message);
+        fetchUsers();
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
       console.error('Lỗi khi cập nhật quyền:', error);
       alert('Lỗi khi cập nhật quyền!');
@@ -128,18 +146,25 @@ const UserManagement = () => {
   };
 
   // Xử lý khoá/mở khoá tài khoản
-  const handleToggleLock = async (userId, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'locked' : 'active';
+  const handleToggleLock = async (userId) => {
 
     try {
-      // API call để khoá/mở khoá - Thay bằng API thực tế
-      setUsers(users.map(user =>
-        user.id === userId ? { ...user, status: newStatus } : user
-      ));
-      alert(`${newStatus === 'locked' ? 'Khoá' : 'Mở khoá'} tài khoản thành công!`);
+      const response = await fetch(sumaryApi.toggleBlockUser.url.replace(':id', userId), {
+        method: sumaryApi.toggleBlockUser.method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success(data.message);
+        fetchUsers();
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
       console.error('Lỗi khi cập nhật trạng thái:', error);
-      alert('Lỗi khi cập nhật trạng thái!');
     }
   };
 

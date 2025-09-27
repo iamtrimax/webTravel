@@ -1,8 +1,9 @@
 import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Context from "../../Context/Context";
-import socket from "../../Socket/Socket";
+import socket, { connectSocket } from "../../Socket/Socket";
 import sumaryApi from "../../common";
+import { jwtDecode } from "jwt-decode";
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -37,12 +38,23 @@ const Login = () => {
       const data = await res.json();
       if (data.success) {
         // Đăng nhập thành công xử lý logic ở đây
-        localStorage.setItem("token", JSON.stringify(data.data.accessToken));
+        localStorage.setItem("accessToken", data.data.accessToken);
         navigator("/");
         fetchUserDetails();
-        const userId = data.data._id;
-        socket.connect();
-        socket.emit("register", userId);
+
+        connectSocket()
+        socket.on("connect", () => {
+          console.log("Socket connected:", socket.id);
+
+
+          socket.emit("register");
+
+        });
+        socket.on("blocked", (data) => {
+          alert(data.message);
+          localStorage.removeItem("accessToken");
+          window.location.href = "/login";
+        });
       } else {
         // Đăng nhập thất bại xử lý logic ở đây
         setErrors(data.message || {});

@@ -4,7 +4,7 @@ import sumaryApi from '../../common';
 import Context from '../../Context/Context';
 import { setUser } from '../../Store/userSlice';
 import { useDispatch } from 'react-redux';
-import socket from '../../Socket/Socket';
+import socket, { connectSocket } from '../../Socket/Socket';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -48,18 +48,29 @@ const AdminLogin = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
-      const dataApi = await response.json();    
+      const dataApi = await response.json();
 
       if (dataApi.success) {
         localStorage.setItem('accessToken', dataApi.data.accessToken);
         // Redirect đến trang trước đó hoặc dashboard
         fetchUserDetails();
         dispatch(setUser(dataApi.data.user));
-        const userId = dataApi.data.user._id;
-        socket.connect();
-        socket.emit("register", userId);
+        console.log(dataApi.data.user.role);
         const from = location.state?.from?.pathname || '/admin';
         navigate(from, { replace: true });
+        connectSocket()
+        socket.on("connect", () => {
+          console.log("Socket connected:", socket.id);
+
+
+          socket.emit("register");
+
+        });
+        socket.on("blocked", (data) => {
+          alert(data.message);
+          localStorage.removeItem("accessToken");
+          navigate("admin/login");
+        });
       } else {
         setError(dataApi.message);
       }
@@ -216,8 +227,8 @@ const AdminLogin = () => {
           </form>
           {/* Back to Main Site */}
           <div className="mt-6 text-center">
-            <a 
-              href="/" 
+            <a
+              href="/"
               className="text-blue-400 hover:text-blue-300 transition-colors text-sm flex items-center justify-center"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

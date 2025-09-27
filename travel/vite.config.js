@@ -5,4 +5,8 @@ export default defineConfig({
   plugins: [
     react(), tailwindcss(),
   ],
+    server: {
+    hmr: false,
+  },
 })
+

@@ -53,7 +53,7 @@ const UserCard = ({ user, onDelete, onUpdateRole, onToggleLock, getRoleColor, ge
             onClick={() => {
               const newRole = prompt('Nhập role mới (admin/moderator/user):', user.role);
               if (newRole && ['admin', 'moderator', 'user'].includes(newRole)) {
-                onUpdateRole(user.id, newRole);
+                onUpdateRole(user._id, newRole);
               }
             }}
           >
@@ -61,13 +61,13 @@ const UserCard = ({ user, onDelete, onUpdateRole, onToggleLock, getRoleColor, ge
           </button>
           <button 
             className="action-btn toggle-lock"
-            onClick={() => onToggleLock(user.id, user.status)}
+            onClick={() => onToggleLock(user._id)}
           >
-            {user.status === 'active' ? '🔒 Khoá tài khoản' : '🔓 Mở khoá tài khoản'}
+            {user.isActive === true ? '🔒 Khoá tài khoản' : '🔓 Mở khoá tài khoản'}
           </button>
           <button 
             className="action-btn delete"
-            onClick={() => onDelete(user.id)}
+            onClick={() => onDelete(user._id)}
           >
             🗑️ Xoá người dùng
           </button>

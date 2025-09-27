@@ -18,12 +18,12 @@ const Layout = () => {
             method: sumaryApi.logout.method,
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
             }
         });
         const data = await res.json();
         if (data.success) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("accessToken");
             dispatch(clearUser());
             navigator("/");
         }

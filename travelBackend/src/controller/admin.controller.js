@@ -1,8 +1,42 @@
 const asyncHandler = require("../middleware/asyncHandler");
+const emailModel = require("../models/email.model");
 const userModel = require("../models/user.model");
-const { blockUser } = require("../Services/userService");
+const {
+  blockUser,
+  updateRoleService,
+  deleteUserService,
+} = require("../Services/userService");
 const { generateAccessToken } = require("./user.controller");
 const bcrypt = require("bcryptjs");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
+});
+const deleteImage = asyncHandler(async (req, res) => {
+  try {
+    const { public_id } = req.body;
+
+    if (!public_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "public_id is required" });
+    }
+
+    const result = await cloudinary.uploader.destroy(public_id);
+
+    if (result.result === "ok") {
+      return res.json({ success: true, result });
+    } else {
+      return res.status(400).json({ success: false, result });
+    }
+  } catch (err) {
+    console.error("Delete image error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
 const adminLogin = asyncHandler(async (req, res) => {
   // Your admin login logic here
   const { email, password } = req.body;
@@ -38,35 +72,34 @@ const adminLogin = asyncHandler(async (req, res) => {
     error: false,
   });
 });
-const blockedUser = async (req, res) => {
-  const userId = req.params.id;
-  const currentUserId = req.userId;
+const toggleBlockUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const currentUserId = req.userId;
 
-  if (userId.toString() === currentUserId.toString()) {
-    return res.status(403).json({
-      message: "Bạn không thể khóa tài khoản của mình",
+    if (userId.toString() === currentUserId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không thể tự khóa/mở khóa tài khoản của mình",
+      });
+    }
+
+    const updatedUser = await blockUser(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: updatedUser.isActive
+        ? "Tài khoản đã được mở khóa"
+        : "Tài khoản đã bị khóa",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Lỗi toggle user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server",
     });
   }
-  await blockUser(userId);
-  return res.status(200).json({
-    success: true,
-    message: "tài khoản đã bị khóa",
-  });
-};
-const unBlockedUser = async (req, res) => {
-  const userId = req.params.id;
-  const unBlockUser = await userModel.findByIdAndUpdate(
-    userId,
-    { isActive: true },
-    { new: true }
-  );
-  if (!unBlockUser) {
-    return res.status(404).json({ message: "Người dùng không tồn tại" });
-  }
-  return res.status(200).json({
-    success: true,
-    message: "tài khoản đã được mở khóa",
-  });
 };
 const getAllUsers = asyncHandler(async (req, res) => {
   const users = await userModel.find().select("-password");
@@ -79,33 +112,92 @@ const createUser = asyncHandler(async (req, res) => {
   const { username, email, password, role } = req.body;
   if (!username || !email || !password || !role) {
     res.status(400);
-    return res.json({ message: "Vui lòng cung cấp đầy đủ thông tin", success: false,error: true  });
+    return res.json({
+      message: "Vui lòng cung cấp đầy đủ thông tin",
+      success: false,
+      error: true,
+    });
   }
 
   const existingUser = await userModel.findOne({ email });
   if (existingUser) {
     res.status(400);
-    return res.json({ message: "Email đã được sử dụng", success: false,error: true  });
+    return res.json({
+      message: "Email đã được sử dụng",
+      success: false,
+      error: true,
+    });
   }
   const hashedPassword = await bcrypt.hash(password, 10);
   const newUser = new userModel({
     username,
     email,
     password: hashedPassword,
-    role
+    role,
   });
   await newUser.save();
   return res.status(201).json({
     success: true,
     message: "Tạo người dùng thành công",
-    data: newUser
+    data: newUser,
   });
 });
+const updateRoleUser = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+  const { role } = req.body;
+  if (!role) {
+    return res.status(400).json({
+      message: "quyền không được để trống",
+      success: false,
+      error: true,
+    });
+  }
+  const updated = await updateRoleService(userId, role);
+  if (!updated) {
+    return res
+      .status(404)
+      .json({ message: "Không tìm thấy user", success: false, error: true });
+  }
+  return res.status(200).json({
+    message: "Cập nhật quyền user thành công",
+    data: updated,
+    error: false,
+    success: true,
+  });
+});
+const deleteUser = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+  if (userId.toString() === req.userId.toString()) {
+    return res.status(403).json({
+      message: "Bạn không thể xoá chính mình",
+      success: false,
+      error: true,
+    });
+  }
+  const deleted = await deleteUserService(userId);
+  if(deleted)
+    return res
+      .status(200)
+      .json({ message: "Xoá user thành công", success: true, error: false });
+});
+const getAllEmail = asyncHandler(async (req, res) => {
+  const email = await emailModel.find().populate("userId").lean();
+  return res.status(200).json({
+    data: email,
+    success: true,
+    error: false,
+  });
+});
+// replyEmail
+const replyEmail = asyncHandler(async (req, res) => {});
 
 module.exports = {
-  blockedUser,
-  unBlockedUser,
+  toggleBlockUser,
   adminLogin,
   getAllUsers,
   createUser,
+  updateRoleUser,
+  deleteUser,
+  deleteImage,
+  getAllEmail,
 };

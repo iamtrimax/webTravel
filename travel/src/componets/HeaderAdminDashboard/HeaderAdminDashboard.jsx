@@ -27,7 +27,7 @@ const HeaderAdminDashboard = () => {
         if (data.success) {
             console.log('Logout successful');
             // Xóa token, clear storage, redirect về trang login
-            localStorage.removeItem('adminToken');
+            localStorage.removeItem('accessToken');
             window.location.href = '/';
         }
     };

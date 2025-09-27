@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Context from './Context/Context';
 import { useDispatch } from 'react-redux';
-import { setUser } from './Store/userSlice';
+import { clearUser, setUser } from './Store/userSlice';
 import sumaryApi from './common';
 import Layout from './Layout/Layout';
 import LayoutAdmin from './Layout/LayoutAdmin';
-import socket from './Socket/Socket';
+import socket, { connectSocket } from './Socket/Socket';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -15,6 +15,7 @@ function App() {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const dispatch = useDispatch();
   const [loadingUser, setLoadingUser] = useState(true);
+  const navigate = useNavigate()
 
   const fetchUserDetails = async () => {
     const token = localStorage.getItem("accessToken");
@@ -43,6 +44,53 @@ function App() {
 
   useEffect(() => {
     fetchUserDetails();
+
+    connectSocket()
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+
+
+      socket.emit("register");
+
+    });
+
+
+    socket.on("updated role", (data) => {
+      alert(data.message);
+      console.log(data.newRole);
+
+      if (data.newRole == "admin")
+        navigate("/")
+      if (data.newRole == "user") {
+
+        navigate("/login");
+        dispatch(clearUser())
+        localStorage.removeItem("accessToken")
+      }
+    });
+    socket.on("deleted", (data) => {
+      alert(data.message)
+      localStorage.removeItem("accessToken");
+      dispatch(clearUser())
+
+      navigate("/")
+    })
+
+    socket.on("disconnect", () => {
+      console.log("❌ socket disconnected");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connect error:", err);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("updated role");
+      socket.off("disconnect");
+      socket.off("connect_error");
+      // socket.disconnect()  // 👉 chỉ nên gọi khi logout
+    };
   }, []);
 
   useEffect(() => {

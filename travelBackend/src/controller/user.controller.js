@@ -2,6 +2,7 @@ const userModel = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("../middleware/asyncHandler");
+const {sendMail } = require("../Services/userService");
 require("dotenv").config();
 
 const generateAccessToken = (user, exp) => {
@@ -135,11 +136,22 @@ const userLogout = asyncHandler(async (req, res) => {
     message: "Đăng xuất thành công",
   });
 });
+const sentEmail = asyncHandler(async (req, res)=>{
+  const userId = req.userId;
+  const {subject, content} = req.body;
+  await sendMail(userId,subject,content);
+  return res.status(200).json({
+    message: "đã gửi email tới quản trị viên",
+    success: true,
+    error: false,
+  })
+}) 
 
 module.exports = {
   userRegister,
   userLogin,
   userDetails,
   userLogout,
-  generateAccessToken
+  generateAccessToken,
+  sentEmail
 };

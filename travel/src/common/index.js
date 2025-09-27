@@ -29,9 +29,17 @@ const sumaryApi = {
 
     method: "PUT",
   },
+  deleteTour: {
+    url: `${url_api}/admin/tour/:id`,
+    method: "DELETE",
+  },
   getAllTours: {
     url: `${url_api}/admin/tours`,
     method: "GET",
+  },
+  toggleTourStatus: {
+    url: `${url_api}/admin/tour/:id/status`,
+    method: "PUT",
   },
   blockUser: {
     url: `${url_api}/admin/user/:id/block`,
@@ -49,5 +57,25 @@ const sumaryApi = {
     url: `${url_api}/admin/user`,
     method: "POST",
   },
+  toggleBlockUser:{
+    url: `${url_api}/admin/user/:id/block`,
+    method: "PUT",
+  },
+  updateRoleUser:{
+    url: `${url_api}/admin/user/:id/role`,
+    method: "PUT",
+  },
+  deleteUser:{
+    url: `${url_api}/admin/user/:id`,
+    method: "DELETE",
+  },
+  deleteImage:{
+    url: `${url_api}/admin/cloudinary/image`,
+    method: "DELETE",
+  },
+  getAllEmail:{
+    url: `${url_api}/admin/emails`,
+    method:"GET"
+  }
 };
 export default sumaryApi;

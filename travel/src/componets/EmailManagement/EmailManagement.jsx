@@ -63,8 +63,8 @@ const EmailManagement = ({
                     <span className="email-priority">
                       {getPriorityIcon(email.priority)}
                     </span>
-                    <span className="email-sender">{email.userName}</span>
-                    <span className="email-time">{email.timestamp}</span>
+                    <span className="email-sender">{email?.userId.username}</span>
+                    <span className="email-time">{new Date(email.createdAt).toLocaleDateString().split('T')[0]}</span>
                   </div>
                   <div className="email-subject">{email.subject}</div>
                   <div className="email-preview">{email.content.substring(0, 100)}...</div>
@@ -84,9 +84,9 @@ const EmailManagement = ({
                 <div className="email-detail-header">
                   <h3>{selectedEmail.subject}</h3>
                   <div className="email-meta">
-                    <p><strong>Người gửi:</strong> {selectedEmail.userName} ({selectedEmail.userEmail})</p>
-                    <p><strong>Thời gian:</strong> {selectedEmail.timestamp}</p>
-                    <p><strong>User ID:</strong> {selectedEmail.userId}</p>
+                    <p><strong>Người gửi:</strong> {selectedEmail?.userId.username} ({selectedEmail?.userId.email})</p>
+                    <p><strong>Thời gian:</strong> {new Date(selectedEmail.createdAt).toLocaleDateString().split('T')[0]}</p>
+                    <p><strong>User ID:</strong> {selectedEmail?.userId._id}</p>
                   </div>
                 </div>
 

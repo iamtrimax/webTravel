@@ -87,9 +87,35 @@ const updateTour = asyncHandler(async (req, res) => {
     data: tour,
   });
 });
+const deleteTour = asyncHandler(async (req, res) => {
+  const tourId = req.params.id; 
+  const tour = await Tour.findByIdAndDelete(tourId);
+  if (!tour) {
+    res.status(404);
+    throw new Error("Tour không tồn tại");
+  }
+  return res.status(200).json({
+    message: "Xoá tour thành công",
+    error: false,
+    success: true,
+  });
+});
+const toggleTourStatus = asyncHandler(async (req, res) => {
+  const tourId = req.params.id;
+  const tour = await Tour.findById(tourId);
+  if (!tour) {
+    res.status(404);
+    throw new Error("Tour không tồn tại");
+  } 
+  tour.isActive = !tour.isActive;
+  await tour.save();
+  return res.status(200).json({success: true, error: false, data: tour });
+});
 
 module.exports = {
   createTour,
   getAllTours,
   updateTour,
+  deleteTour,
+  toggleTourStatus
 };
