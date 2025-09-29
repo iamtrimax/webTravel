@@ -43,10 +43,11 @@ const AdminDashboard = () => {
     fetchEmail();
     connectSocket()
     socket.on("connect", () => {
-
-      socket.emit("register");
+      console.log("user connect......", socket.id);
+      
     })
     socket.on("sent", (newEmail) => {
+      console.log("mail đến..........")
       setEmails(prev => [newEmail, ...prev]);
       setStats(prev => ({ ...prev, unreadEmails: prev.unreadEmails + 1 }));
     });

@@ -62,9 +62,6 @@ const AdminLogin = () => {
         socket.on("connect", () => {
           console.log("Socket connected:", socket.id);
 
-
-          socket.emit("register");
-
         });
         socket.on("blocked", (data) => {
           alert(data.message);

@@ -41,15 +41,10 @@ connectMongoDb().then(() => {
     
  // Kiểm tra nhiều vị trí có thể chứa token
   const token = 
-    socket.handshake.auth?.token ||
-    socket.handshake.query?.token ||
-    socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    socket.handshake.auth?.token
   
   console.log("Token search result:", {
     auth: socket.handshake.auth?.token,
-    query: socket.handshake.query?.token,
-    headers: socket.handshake.headers?.authorization,
-    finalToken: token
   })    
 
     
@@ -59,6 +54,7 @@ connectMongoDb().then(() => {
       console.log("Decoded payload:", decoded);
       socket.userId = decoded.id;
       socket.role = decoded.role;
+      console.log("role socket.......",decoded.role);
       next()
     } catch (error) {
       console.error("Socket auth error:", error);
@@ -68,16 +64,13 @@ connectMongoDb().then(() => {
   io.on("connection", (socket) => {
     console.log("User connected:", socket.userId, socket.role);
 
-    socket.on("register", () => {
-      onlineUsers.set(socket.userId, socket.id);
-      if (socket.role === "admin") {
-        socket.join("admins");
-        console.log(`Admin registered: ${socket.id}`);
-      } else {
-        console.log(`User registered: ${socket.userId} -> ${socket.id}`);
-      }
-    });
-
+    onlineUsers.set(socket.userId, socket.id);
+    if (socket.role === "admin") {
+      socket.join("admins");
+      console.log(`Admin registered: ${socket.id}`);
+    } else {
+      console.log(`User registered: ${socket.userId} -> ${socket.id}`);
+    }
     socket.on("disconnect", () => {
       for (let [userId, sockId] of onlineUsers.entries()) {
         if (sockId === socket.id) {

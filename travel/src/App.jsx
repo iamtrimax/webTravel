@@ -48,10 +48,6 @@ function App() {
     connectSocket()
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
-
-
-      socket.emit("register");
-
     });
 
 
@@ -59,13 +55,27 @@ function App() {
       alert(data.message);
       console.log(data.newRole);
 
-      if (data.newRole == "admin")
-        navigate("/")
+      if (data.newRole == "admin") {
+        alert(data.message);
+
+        socket.disconnect()
+        // clear trước
+        localStorage.removeItem("accessToken");
+        dispatch(clearUser());
+
+        // rồi mới navigate
+        navigate("/admin/login", { replace: true });
+      }
       if (data.newRole == "user") {
 
-        navigate("/login");
-        dispatch(clearUser())
-        localStorage.removeItem("accessToken")
+        alert(data.message);
+        socket.disconnect()
+        // clear trước
+        localStorage.removeItem("accessToken");
+        dispatch(clearUser());
+
+        // rồi mới navigate
+        navigate("/login", { replace: true });
       }
     });
     socket.on("deleted", (data) => {

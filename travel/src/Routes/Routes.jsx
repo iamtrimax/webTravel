@@ -10,6 +10,7 @@ import AdminDashboard from '../pages/AdminDashboard/AdminDashboard'
 import AdminLogin from '../pages/AdminLogin/AdminLogin'
 import Page403 from '../pages/page403/page403'
 import AdminRoute from './AdminRoute'
+import TravelBlog from '../pages/TravelBlog/TravelBlog'
 
 const Routes = createBrowserRouter([
   {
@@ -47,6 +48,10 @@ const Routes = createBrowserRouter([
       {
         path: "admin",
         element: (<AdminRoute><AdminDashboard /></AdminRoute>),
+      },
+      {
+        path:"travel-blog",
+        element:<TravelBlog/>
       }
     ]
   }

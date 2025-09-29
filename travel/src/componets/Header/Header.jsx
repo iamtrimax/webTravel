@@ -6,10 +6,11 @@ const Header = ({ onAuthClick, user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('/');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const navItems = [
     { label: 'Đặt Tour', path: '/booking' },
     { label: 'VÉ CỦA TÔI', path: '/my-ticket' },
-    { label: 'Trải Nghiệm ', path: '/blog-' }
+    { label: 'Trải Nghiệm ', path: '/travel-blog' }
   ];
   // Cập nhật activeTab khi location thay đổi
   useEffect(() => {    

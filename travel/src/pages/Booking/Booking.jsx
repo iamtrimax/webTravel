@@ -6,11 +6,12 @@ const Booking = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTour, setSelectedTour] = useState(null);
-  const [bookingDate, setBookingDate] = useState('');
+  const [bookingDate, 
+    
+    setBookingDate] = useState('');
   const [travelers, setTravelers] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('credit');
   const [bookingData, setBookingData] = useState(null);
-  const location = useLocation();
 
   // Mock data for tours
   const tours = [

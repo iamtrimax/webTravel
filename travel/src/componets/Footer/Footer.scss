@@ -15,7 +15,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-family: 'Montserrat', sans-serif;
   border-top: 1px solid rgba($primary-color, 0.3);
   overflow: hidden;
-  margin-top: 4rem;
+
 
   .footer-decoration {
     position: absolute;
@@ -436,8 +436,6 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
 @media (max-width: 768px) {
   .cinene-footer {
-    margin-top: 2rem;
-
     .footer-container {
       padding: 2rem 1rem 1rem;
     }
