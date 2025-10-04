@@ -25,7 +25,7 @@ const TourCard = ({ tour, onEdit, onDelete, onToggleStatus, getCategoryColor, ge
   const description = tour.description || "";
   const category = tour.category || "other";
   const isActive = tour.isActive ?? false;
-  const rating = tour.rating ?? 0;
+  const rating = tour?.rating?.average ?? 0;
   const startDates = Array.isArray(tour.startDates) ? tour.startDates : [];
   const endDates = Array.isArray(tour.endDate) ? tour.endDate : [];
 
@@ -56,7 +56,7 @@ const TourCard = ({ tour, onEdit, onDelete, onToggleStatus, getCategoryColor, ge
     <div className="tour-card">
       <div className="tour-card-header">
         <div className="tour-image">
-          <img src={tour.images[0]?.url || logo2} alt={title} />
+          <img src={tour?.images?.[0]?.url || logo2} alt={title} />
           <div className="tour-badges">
             <span className="category-badge" style={{ backgroundColor: getCategoryColor(category) }}>
               {categoryName}

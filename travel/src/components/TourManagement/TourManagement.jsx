@@ -87,8 +87,8 @@ const TourManagement = () => {
         setShowAddTourModal(false);
         resetTourForm();
       }
-      if (data.error) {
-        toast.error(data.error);
+      else {
+        toast.error(data.message);
       }
 
     } catch (error) {

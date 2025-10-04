@@ -6,6 +6,7 @@ const {
   updateRoleService,
   deleteUserService,
 } = require("../Services/userService");
+const { adminReplyEmail } = require("../utils/email.utils");
 const { generateAccessToken } = require("./user.controller");
 const bcrypt = require("bcryptjs");
 const cloudinary = require("cloudinary").v2;
@@ -189,7 +190,24 @@ const getAllEmail = asyncHandler(async (req, res) => {
   });
 });
 // replyEmail
-const replyEmail = asyncHandler(async (req, res) => {});
+const replyEmail = asyncHandler(async (req, res) => {
+  const {userEmail, subject, content} = req.body
+  console.log(userEmail, subject, content);
+  if(!userEmail){
+    return res.status(400).json({
+      message: "bạn không thể reply email này",
+      error: true,
+      success:false
+    })
+  }
+    await adminReplyEmail(userEmail, subject, content)
+
+    return res.status(200).json({
+      message:"Đã gửi phản hồi email",
+      success: true,
+      error: fals
+    })
+});
 
 module.exports = {
   toggleBlockUser,
@@ -200,4 +218,5 @@ module.exports = {
   deleteUser,
   deleteImage,
   getAllEmail,
+  replyEmail
 };

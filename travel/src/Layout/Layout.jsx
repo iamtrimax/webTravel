@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import sumaryApi from '../common';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { clearUser } from '../Store/userSlice';
-import Header from '../componets/Header/Header';
-import Footer from '../componets/Footer/Footer';
+import Header from '../components/Header/Header';
+import Footer from '../components/Footer/Footer';
 
 const Layout = () => {
     const user = useSelector((state) => state?.user?.user);

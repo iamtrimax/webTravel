@@ -1,5 +1,5 @@
-import Banner from '../../componets/Banner/Banner'
-import BodyHome from '../../componets/BodyHome/BodyHome'
+import Banner from '../../components/Banner/Banner'
+import BodyHome from '../../components/BodyHome/BodyHome'
 
 const Home = () => {
   return (

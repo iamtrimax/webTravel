@@ -1,87 +1,135 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import './Booking.scss';
+import { jwtDecode } from 'jwt-decode';
+import sumaryApi from '../../common';
+import { toast } from 'react-toastify';
 
 const Booking = () => {
+  const [tours, setTours] = useState([])
   const [activeStep, setActiveStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTour, setSelectedTour] = useState(null);
-  const [bookingDate, 
-    
-    setBookingDate] = useState('');
+  const [bookingDate, setBookingDate] = useState('');
   const [travelers, setTravelers] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('credit');
   const [bookingData, setBookingData] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const navigate = useNavigate()
+  const token = localStorage.getItem("accessToken")
+  const decoded = token ? jwtDecode(token) : ''
 
-  // Mock data for tours
-  const tours = [
-    {
-      id: 1,
-      name: 'Phố Cổ Hội An - Di Sản Văn Hóa',
-      location: 'Hội An, Quảng Nam',
-      price: 2490000,
-      duration: '3 ngày 2 đêm',
-      rating: 4.8,
-      image: 'https://images.unsplash.com/photo-1528127269322-539801943592?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      description: 'Khám phá vẻ đẹp cổ kính của phố cổ Hội An',
-      availableDates: ['2024-03-15', '2024-03-20', '2024-03-25'],
-      category: 'cultural'
-    },
-    {
-      id: 2,
-      name: 'Vịnh Hạ Long - Kỳ Quan Thiên Nhiên',
-      location: 'Quảng Ninh',
-      price: 3890000,
-      duration: '2 ngày 1 đêm',
-      rating: 4.9,
-      image: 'https://images.unsplash.com/photo-1575381813691-465c8eac364e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      description: 'Trải nghiệm du thuyền sang trọng khám phá vịnh Hạ Long',
-      availableDates: ['2024-03-18', '2024-03-22', '2024-03-28'],
-      category: 'adventure'
-    },
-    {
-      id: 3,
-      name: 'Đà Lạt - Thành Phố Ngàn Hoa',
-      location: 'Lâm Đồng',
-      price: 3190000,
-      duration: '4 ngày 3 đêm',
-      rating: 4.6,
-      image: 'https://images.unsplash.com/photo-1596199050104-6e5a2a5c4b3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      description: 'Đắm chìm trong không khí se lạnh của Đà Lạt',
-      availableDates: ['2024-03-16', '2024-03-23', '2024-03-30'],
-      category: 'cultural'
+  // Thêm state cho thông tin khách hàng
+  const [customerInfo, setCustomerInfo] = useState({
+    fullname: '',
+    phone: '',
+    address: '',
+    specialRequests: ''
+  });
+  const fetchTours = async () => {
+    try {
+      // API call để lấy danh sách tour 
+      const response = await fetch(sumaryApi.getAllTours.url, {
+        method: sumaryApi.getAllTours.method,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }); // Thay bằng endpoint thực tế
+
+      const data = await response.json();
+      setTours(data.data);
+    } catch (error) {
+      console.error('Lỗi khi tải danh sách tour:', error);
     }
+  };
+  // Categories data
+  const categories = [
+    { id: 'all', name: 'Tất Cả', count: tours.length, icon: '🌍' },
+    { id: 'beach', name: 'Biển', count: tours.filter(tour => tour.category === 'beach').length, icon: '🏖️' },
+    { id: 'mountain', name: 'Núi', count: tours.filter(tour => tour.category === 'mountain').length, icon: '⛰️' },
+    { id: 'adventure', name: 'Phiêu Lưu', count: tours.filter(tour => tour.category === 'adventure').length, icon: '🧗' },
+    { id: 'cultural', name: 'Văn Hóa', count: tours.filter(tour => tour.category === 'cultural').length, icon: '🏯' },
+    { id: 'city', name: 'Thành Phố', count: tours.filter(tour => tour.category === 'city').length, icon: '🏙️' }
   ];
 
-  const filteredTours = tours.filter(tour =>
-    tour.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tour.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter tours based on search and category
+  const filteredTours = tours.filter(tour => {
+    const matchesSearch = tour.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tour.destination.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || tour.category === selectedCategory;
 
+    return matchesSearch && matchesCategory;
+  });
+
+  // Cập nhật steps để thêm bước thông tin khách hàng
   const steps = [
     { number: 1, title: 'Chọn Tour', icon: '🗺️' },
     { number: 2, title: 'Chọn Ngày & Số Lượng', icon: '📅' },
-    { number: 3, title: 'Thanh Toán', icon: '💳' },
-    { number: 4, title: 'Xác Nhận', icon: '✅' }
+    { number: 3, title: 'Thông Tin Khách Hàng', icon: '👤' },
+    { number: 4, title: 'Thanh Toán', icon: '💳' },
+    { number: 5, title: 'Xác Nhận', icon: '✅' }
   ];
 
   const handleTourSelect = (tour) => {
+    if (!token) {
+      alert("Bạn cần phải đăng nhập để đặt tour")
+      navigate("/login")
+      return;
+    }
     setSelectedTour(tour);
     setActiveStep(2);
   };
 
-  const handleBookingSubmit = () => {
-    const booking = {
-      id: Date.now(),
-      tour: selectedTour,
-      date: bookingDate,
-      travelers,
-      total: selectedTour.price * travelers,
-      status: 'confirmed',
-      bookingDate: new Date().toISOString()
-    };
-    setBookingData(booking);
-    setActiveStep(4);
+  // Hàm xử lý thay đổi thông tin khách hàng
+  const handleCustomerInfoChange = (field, value) => {
+    setCustomerInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Hàm kiểm tra thông tin khách hàng đã đầy đủ chưa
+  const isCustomerInfoValid = () => {
+    return customerInfo.fullname.trim() !== '' &&
+      customerInfo.phone.trim() !== '' &&
+      customerInfo.address.trim() !== '';
+  };
+
+  const handleBookingSubmit = async () => {
+    // const booking = {
+    //   id: Date.now(),
+    //   tour: selectedTour,
+    //   date: bookingDate,
+    //   travelers,
+    //   customerInfo: customerInfo,
+    //   total: selectedTour.price * travelers,
+    //   status: 'confirmed',
+    //   bookingDate: new Date().toISOString()
+    // };
+    const fetchBooking = await fetch(sumaryApi.booking.url, {
+      method: sumaryApi.booking.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify({
+        tourId: selectedTour._id,
+        bookingDate: new Date(bookingDate).toString(),
+        bookingSlots: travelers,
+        fullname: customerInfo.fullname,
+        phone: customerInfo.phone,
+        address: customerInfo.address,
+        specialRequire: customerInfo.specialRequests
+      })
+    })
+    const data = await fetchBooking.json()
+    if (data.success) {
+      toast.success(data.message)
+      setBookingData(data.data);
+      setActiveStep(5);
+    }else{
+      toast.error(data.message)
+    }
   };
 
   const formatPrice = (price) => {
@@ -94,7 +142,11 @@ const Booking = () => {
   const handleTravelersChange = (amount) => {
     setTravelers(prev => Math.max(1, prev + amount));
   };
-
+  useEffect(() => {
+    fetchTours()
+    console.log(tours);
+    
+  }, [])
   return (
     <div className="booking-page">
       {/* Header Section */}
@@ -143,46 +195,97 @@ const Booking = () => {
                   <i className="fas fa-arrow-right"></i>
                 </button>
               </div>
-              
-              {/* Filter Options */}
-              <div className="filter-options">
-                <button className="filter-btn active">Tất Cả</button>
-                <button className="filter-btn">Trong Nước</button>
-                <button className="filter-btn">Quốc Tế</button>
-                <button className="filter-btn">Phiêu Lưu</button>
-                <button className="filter-btn">Văn Hóa</button>
+
+              {/* Category Filter - ĐÃ SỬA */}
+              <div className="category-filter-section">
+                <h4 className="filter-title">Lọc theo danh mục:</h4>
+                <div className="category-filters">
+                  {categories.map(category => (
+                    <button
+                      key={category.id}
+                      className={`category-filter-btn ${selectedCategory === category.id ? 'active' : ''}`}
+                      onClick={() => setSelectedCategory(category.id)}
+                    >
+                      <span className="category-icon">{category.icon}</span>
+                      <span className="category-name">{category.name}</span>
+                      <span className="category-count">({category.count})</span>
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Active Filter Display */}
+              {selectedCategory !== 'all' && (
+                <div className="active-filter">
+                  <span>Đang lọc: {categories.find(cat => cat.id === selectedCategory)?.name}</span>
+                  <button
+                    className="clear-filter-btn"
+                    onClick={() => setSelectedCategory('all')}
+                  >
+                    ✕ Bỏ lọc
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Results Count */}
+            <div className="results-info">
+              <p>
+                Tìm thấy <strong>{filteredTours.length}</strong> tour
+                {selectedCategory !== 'all' && ` trong danh mục ${categories.find(cat => cat.id === selectedCategory)?.name}`}
+                {searchQuery && ` với từ khóa "${searchQuery}"`}
+              </p>
             </div>
 
             {/* Tours Grid */}
             <div className="tours-grid">
-              {filteredTours.map(tour => (
-                <div key={tour.id} className="tour-card" onClick={() => handleTourSelect(tour)}>
-                  <div className="card-image">
-                    <img src={tour.image} alt={tour.name} />
-                    <div className="card-badge">{tour.category === 'international' ? 'Quốc Tế' : 'Trong Nước'}</div>
-                    <div className="card-overlay">
-                      <button className="view-detail-btn">Xem Chi Tiết</button>
-                    </div>
-                  </div>
-                  <div className="card-content">
-                    <div className="tour-meta">
-                      <span className="tour-duration">{tour.duration}</span>
-                      <span className="tour-rating">⭐ {tour.rating}</span>
-                    </div>
-                    <h3 className="tour-name">{tour.name}</h3>
-                    <p className="tour-location">📍 {tour.location}</p>
-                    <p className="tour-description">{tour.description}</p>
-                    <div className="card-footer">
-                      <div className="tour-price">
-                        <span className="price">{formatPrice(tour.price)}</span>
-                        <span className="price-note">/người</span>
+              {filteredTours.length > 0 ? (
+                filteredTours.map(tour => (
+                  <div key={tour.id} className="tour-card">
+                    <div className="card-image">
+                      <img src={tour.images[0].url} alt={tour.title} />
+                      <div className="card-badge">
+                        {categories.find(cat => cat.id === tour.category)?.icon}
+                        {categories.find(cat => cat.id === tour.category)?.name}
                       </div>
-                      <button className="select-btn">Chọn Tour</button>
+                      <div className="card-overlay">
+                        <button className="view-detail-btn">Xem Chi Tiết</button>
+                      </div>
+                    </div>
+                    <div className="card-content">
+                      <div className="tour-meta">
+                        <span className="tour-duration">{`${tour.duration} ngày ${tour.duration - 1} đêm`}</span>
+                        <span className="tour-rating">⭐ {tour.rating.average}</span>
+                      </div>
+                      <h3 className="tour-name">{tour.title}</h3>
+                      <p className="tour-location">📍 {tour.destination}</p>
+                      <p className="tour-description">{tour.description}</p>
+                      <div className="card-footer">
+                        <div className="tour-price">
+                          <span className="price">{formatPrice(tour.discountPrice || tour.price)}</span>
+                          <span className="price-note">/người</span>
+                        </div>
+                        <button className="select-btn" onClick={() => handleTourSelect(tour)}>Chọn Tour</button>
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="no-results">
+                  <div className="no-results-icon">🔍</div>
+                  <h3>Không tìm thấy tour phù hợp</h3>
+                  <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác</p>
+                  <button
+                    className="reset-filters-btn"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('all');
+                    }}
+                  >
+                    ↻ Đặt lại bộ lọc
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </section>
@@ -197,12 +300,12 @@ const Booking = () => {
               <div className="tour-summary">
                 <h3>Tour Đã Chọn</h3>
                 <div className="summary-card">
-                  <img src={selectedTour.image} alt={selectedTour.name} />
+                  <img src={selectedTour.images[0].url} alt={selectedTour.title} />
                   <div className="summary-info">
-                    <h4>{selectedTour.name}</h4>
-                    <p>📍 {selectedTour.location}</p>
-                    <p>📅 {selectedTour.duration}</p>
-                    <div className="summary-price">{formatPrice(selectedTour.price)}/người</div>
+                    <h4>{selectedTour.title}</h4>
+                    <p>📍 {selectedTour.destination}</p>
+                    <p>📅 {`${selectedTour.duration} ngày ${selectedTour.duration - 1} đêm`}</p>
+                    <div className="summary-price">{formatPrice(selectedTour.discountPrice || selectedTour.price)}/người</div>
                   </div>
                 </div>
               </div>
@@ -211,7 +314,7 @@ const Booking = () => {
               <div className="date-section">
                 <h3>Chọn Ngày Khởi Hành</h3>
                 <div className="date-grid">
-                  {selectedTour.availableDates.map((date, index) => (
+                  {selectedTour.startDates.map((date, index) => (
                     <div
                       key={index}
                       className={`date-card ${bookingDate === date ? 'selected' : ''}`}
@@ -225,14 +328,14 @@ const Booking = () => {
                 </div>
               </div>
 
-              {/* Travelers Selection - ĐÃ ĐƠN GIẢN HÓA */}
+              {/* Travelers Selection */}
               <div className="travelers-section">
                 <h3>Chọn Số Lượng Người</h3>
                 <div className="travelers-simple">
                   <div className="traveler-counter">
                     <label>Số lượng người tham gia</label>
                     <div className="counter-wrapper">
-                      <button 
+                      <button
                         className="counter-btn"
                         onClick={() => handleTravelersChange(-1)}
                         disabled={travelers <= 1}
@@ -243,7 +346,7 @@ const Booking = () => {
                         <span className="counter-value">{travelers}</span>
                         <span className="counter-label">người</span>
                       </div>
-                      <button 
+                      <button
                         className="counter-btn"
                         onClick={() => handleTravelersChange(1)}
                       >
@@ -264,10 +367,101 @@ const Booking = () => {
                   <i className="fas fa-arrow-left"></i>
                   Quay Lại
                 </button>
-                <button 
-                  className="next-btn" 
+                <button
+                  className="next-btn"
                   onClick={() => setActiveStep(3)}
                   disabled={!bookingDate}
+                >
+                  Tiếp Theo: Thông Tin Khách Hàng
+                  <i className="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Step 3: Customer Information */}
+      {activeStep === 3 && selectedTour && (
+        <section className="customer-info-section">
+          <div className="container">
+            <div className="customer-info-content">
+              <h2>Thông Tin Khách Hàng</h2>
+              <p className="section-description">Vui lòng cung cấp thông tin của bạn để hoàn tất đặt tour</p>
+
+              <div className="customer-form">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="fullname">Họ và Tên *</label>
+                    <input
+                      type="text"
+                      id="fullname"
+                      value={customerInfo.fullname}
+                      onChange={(e) => handleCustomerInfoChange('fullname', e.target.value)}
+                      placeholder="Nhập họ và tên đầy đủ"
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label htmlFor="phone">Số Điện Thoại *</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={customerInfo.phone}
+                      onChange={(e) => handleCustomerInfoChange('phone', e.target.value)}
+                      placeholder="Nhập số điện thoại"
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label htmlFor="address">Địa Chỉ *</label>
+                    <input
+                      type="text"
+                      id="address"
+                      value={customerInfo.address}
+                      onChange={(e) => handleCustomerInfoChange('address', e.target.value)}
+                      placeholder="Nhập địa chỉ liên hệ"
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label htmlFor="specialRequests">Yêu Cầu Đặc Biệt</label>
+                    <textarea
+                      id="specialRequests"
+                      value={customerInfo.specialRequests}
+                      onChange={(e) => handleCustomerInfoChange('specialRequests', e.target.value)}
+                      placeholder="Nhập các yêu cầu đặc biệt (dị ứng thức ăn, yêu cầu ăn uống, yêu cầu phòng ở, v.v.)"
+                      className="form-textarea"
+                      rows="4"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-note">
+                  <i className="fas fa-info-circle"></i>
+                  Các trường có dấu * là bắt buộc
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="action-buttons">
+                <button className="back-btn" onClick={() => setActiveStep(2)}>
+                  <i className="fas fa-arrow-left"></i>
+                  Quay Lại
+                </button>
+                <button
+                  className="next-btn"
+                  onClick={() => setActiveStep(4)}
+                  disabled={!isCustomerInfoValid()}
                 >
                   Tiếp Theo: Thanh Toán
                   <i className="fas fa-arrow-right"></i>
@@ -278,8 +472,8 @@ const Booking = () => {
         </section>
       )}
 
-      {/* Step 3: Payment */}
-      {activeStep === 3 && selectedTour && (
+      {/* Step 4: Payment */}
+      {activeStep === 4 && selectedTour && (
         <section className="payment-section">
           <div className="container">
             <div className="payment-content">
@@ -301,14 +495,39 @@ const Booking = () => {
                   </div>
                   <div className="detail-item">
                     <span>Đơn giá:</span>
-                    <span>{formatPrice(selectedTour.price)}/người</span>
+                    <span>{formatPrice(selectedTour.dicountPrice||selectedTour.price)}/người</span>
                   </div>
                   <div className="detail-item total-item">
                     <span>Thành tiền:</span>
                     <span className="total-price">
-                      {formatPrice(selectedTour.price * travelers)}
+                      {formatPrice(selectedTour.dicountPrice *travelers||selectedTour.price * travelers)}
                     </span>
                   </div>
+                </div>
+              </div>
+
+              {/* Customer Info Summary */}
+              <div className="customer-summary">
+                <h3>Thông Tin Khách Hàng</h3>
+                <div className="summary-details">
+                  <div className="detail-item">
+                    <span>Họ tên:</span>
+                    <span>{customerInfo.fullname}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span>Số điện thoại:</span>
+                    <span>{customerInfo.phone}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span>Địa chỉ:</span>
+                    <span>{customerInfo.address}</span>
+                  </div>
+                  {customerInfo.specialRequests && (
+                    <div className="detail-item">
+                      <span>Yêu cầu đặc biệt:</span>
+                      <span>{customerInfo.specialRequests}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -316,28 +535,28 @@ const Booking = () => {
               <div className="payment-methods">
                 <h3>Chọn Phương Thức Thanh Toán</h3>
                 <div className="methods-grid">
-                  <div 
+                  <div
                     className={`method-card ${paymentMethod === 'credit' ? 'selected' : ''}`}
                     onClick={() => setPaymentMethod('credit')}
                   >
                     <i className="fas fa-credit-card"></i>
                     <span>Thẻ Tín Dụng</span>
                   </div>
-                  <div 
+                  <div
                     className={`method-card ${paymentMethod === 'banking' ? 'selected' : ''}`}
                     onClick={() => setPaymentMethod('banking')}
                   >
                     <i className="fas fa-university"></i>
                     <span>Chuyển Khoản</span>
                   </div>
-                  <div 
+                  <div
                     className={`method-card ${paymentMethod === 'momo' ? 'selected' : ''}`}
                     onClick={() => setPaymentMethod('momo')}
                   >
                     <i className="fas fa-mobile-alt"></i>
                     <span>Ví MoMo</span>
                   </div>
-                  <div 
+                  <div
                     className={`method-card ${paymentMethod === 'cash' ? 'selected' : ''}`}
                     onClick={() => setPaymentMethod('cash')}
                   >
@@ -349,7 +568,7 @@ const Booking = () => {
 
               {/* Action Buttons */}
               <div className="action-buttons">
-                <button className="back-btn" onClick={() => setActiveStep(2)}>
+                <button className="back-btn" onClick={() => setActiveStep(3)}>
                   <i className="fas fa-arrow-left"></i>
                   Quay Lại
                 </button>
@@ -363,48 +582,56 @@ const Booking = () => {
         </section>
       )}
 
-      {/* Step 4: Confirmation */}
-      {activeStep === 4 && bookingData && (
+      {/* Step 5: Confirmation */}
+      {activeStep === 5 && bookingData && (
         <section className="confirmation-section">
           <div className="container">
             <div className="confirmation-content">
               <div className="success-icon">✅</div>
               <h2>Đặt Tour Thành Công!</h2>
               <p>Cảm ơn bạn đã đặt tour với chúng tôi. Thông tin đặt tour đã được gửi đến email của bạn.</p>
-              
+
               <div className="booking-details">
                 <h3>Thông Tin Đặt Tour</h3>
                 <div className="details-grid">
                   <div className="detail-item">
                     <span>Mã đặt tour:</span>
-                    <span>#{bookingData.id}</span>
+                    <span>#{bookingData.idBooking}</span>
                   </div>
                   <div className="detail-item">
                     <span>Tour:</span>
-                    <span>{bookingData.tour.name}</span>
+                    <span>{bookingData.tour.title}</span>
                   </div>
                   <div className="detail-item">
                     <span>Ngày khởi hành:</span>
-                    <span>{new Date(bookingData.date).toLocaleDateString('vi-VN')}</span>
+                    <span>{new Date(bookingData.bookingDate).toLocaleDateString('vi-VN')}</span>
                   </div>
                   <div className="detail-item">
                     <span>Số lượng:</span>
-                    <span>{bookingData.travelers} người</span>
+                    <span>{bookingData.bookingSlots} người</span>
+                  </div>
+                  <div className="detail-item">
+                    <span>Khách hàng:</span>
+                    <span>{bookingData.fullname}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span>Liên hệ:</span>
+                    <span>{bookingData.phone} | {decoded.email}</span>
                   </div>
                   <div className="detail-item total-item">
                     <span>Tổng tiền:</span>
-                    <span className="total">{formatPrice(bookingData.total)}</span>
+                    <span className="total">{formatPrice(bookingData.totalPrice)}</span>
                   </div>
                   <div className="detail-item">
                     <span>Trạng thái:</span>
-                    <span className="status confirmed">Đã xác nhận</span>
+                    <span className="status confirmed">{bookingData.bookingStatus==="pending"?"Chưa xác nhận":"Xác nhận"}</span>
                   </div>
                 </div>
               </div>
 
               <div className="action-buttons">
                 <button className="print-btn">
-                  <i className="fas fa-print"></i>
+                  <i className="fas fa-print"></i>r
                   In Vé
                 </button>
                 <button className="email-btn">

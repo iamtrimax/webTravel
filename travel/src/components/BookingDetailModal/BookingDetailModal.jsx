@@ -4,10 +4,10 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
     <div className="modal-overlay">
       <div className="modal-content large-modal">
         <div className="modal-header">
-          <h3>Chi tiết đặt tour - {booking.id}</h3>
+          <h3>Chi tiết đặt tour - {booking.idBooking}</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="modal-body">
           <div className="detail-sections">
             <div className="detail-section">
@@ -15,15 +15,19 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
               <div className="detail-grid">
                 <div className="detail-item">
                   <label>Họ tên:</label>
-                  <span>{booking.customer.name}</span>
+                  <span>{booking.fullname}</span>
                 </div>
                 <div className="detail-item">
                   <label>Email:</label>
-                  <span>{booking.customer.email}</span>
+                  <span>{booking.email}</span>
                 </div>
                 <div className="detail-item">
                   <label>Số điện thoại:</label>
-                  <span>{booking.customer.phone}</span>
+                  <span>{booking.phone}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Địa chỉ:</label>
+                  <span>{booking.address}</span>
                 </div>
               </div>
             </div>
@@ -33,19 +37,19 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
               <div className="detail-grid">
                 <div className="detail-item">
                   <label>Tên tour:</label>
-                  <span>{booking.tourTitle}</span>
+                  <span>{booking.tour.title}</span>
                 </div>
                 <div className="detail-item">
                   <label>Ngày đặt:</label>
-                  <span>{booking.bookingDate}</span>
+                  <span>{new Date(booking.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div className="detail-item">
                   <label>Ngày đi:</label>
-                  <span>{booking.travelDate}</span>
+                  <span>{new Date(booking.bookingDate).toLocaleDateString()}</span>
                 </div>
                 <div className="detail-item">
                   <label>Số người:</label>
-                  <span>{booking.numberOfPeople}</span>
+                  <span>{booking.bookingSlots}</span>
                 </div>
                 <div className="detail-item">
                   <label>Tổng tiền:</label>
@@ -62,27 +66,27 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
               <div className="detail-grid">
                 <div className="detail-item">
                   <label>Trạng thái đặt tour:</label>
-                  <span className={`status-badge status-${booking.status}`}>
-                    {booking.status === 'pending' ? 'Chờ xác nhận' : 
-                     booking.status === 'confirmed' ? 'Đã xác nhận' : 
-                     booking.status === 'cancelled' ? 'Đã hủy' : 'Hoàn thành'}
+                  <span className={`status-badge status-${booking.bookingStatus}`}>
+                    {booking.bookingStatus === 'pending' ? 'Chờ xác nhận' :
+                      booking.bookingStatus === 'confirmed' ? 'Đã xác nhận' :
+                        booking.bookingStatus === 'cancelled' ? 'Đã hủy' : 'Hoàn thành'}
                   </span>
                 </div>
                 <div className="detail-item">
                   <label>Thanh toán:</label>
-                  <span className={`payment-badge payment-${booking.paymentStatus}`}>
-                    {booking.paymentStatus === 'pending' ? 'Chờ thanh toán' : 
-                     booking.paymentStatus === 'paid' ? 'Đã thanh toán' : 
-                     booking.paymentStatus === 'refunded' ? 'Đã hoàn tiền' : 'Lỗi'}
+                  <span className={`payment-badge payment-${booking.payStatus}`}>
+                    {booking.payStatus === 'pending' ? 'Chờ thanh toán' :
+                      booking.payStatus === 'paid' ? 'Đã thanh toán' :
+                        booking.payStatus === 'refunded' ? 'Đã hoàn tiền' : 'Lỗi'}
                   </span>
                 </div>
               </div>
             </div>
 
-            {booking.specialRequests && (
+            {booking.specialRequire && (
               <div className="detail-section">
                 <h4>Yêu cầu đặc biệt</h4>
-                <p>{booking.specialRequests}</p>
+                <p>{booking.specialRequire}</p>
               </div>
             )}
           </div>
@@ -94,15 +98,15 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
           </button>
           {booking.status === 'pending' && (
             <>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => onStatusChange(booking.id, 'confirmed')}
                 className="confirm-btn"
               >
                 Xác nhận đặt tour
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => onStatusChange(booking.id, 'cancelled')}
                 className="cancel-booking-btn"
               >

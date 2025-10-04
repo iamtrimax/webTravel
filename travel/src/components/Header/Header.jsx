@@ -10,7 +10,8 @@ const Header = ({ onAuthClick, user, onLogout }) => {
   const navItems = [
     { label: 'Đặt Tour', path: '/booking' },
     { label: 'VÉ CỦA TÔI', path: '/my-ticket' },
-    { label: 'Trải Nghiệm ', path: '/travel-blog' }
+    { label: 'Trải Nghiệm ', path: '/travel-blog' },
+    { label: 'Liên hệ ', path: '/contact-page' }
   ];
   // Cập nhật activeTab khi location thay đổi
   useEffect(() => {    

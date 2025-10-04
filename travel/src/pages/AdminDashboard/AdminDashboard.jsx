@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.scss';
-import SideBar from '../../componets/SideBar/SideBar';
-import HeaderAdminDashboard from '../../componets/HeaderAdminDashboard/HeaderAdminDashboard';
-import EmailManagement from '../../componets/EmailManagement/EmailManagement';
-import DashboardOverview from '../../componets/DashboardOverview/DashboardOverview';
-import UserManagement from '../../componets/UserManagement/UserManagement';
-import TourManagement from '../../componets/TourManagement/TourManagement';
-import BookingManagement from '../../componets/BookingManagement/BookingManagement';
+import SideBar from '../../components/SideBar/SideBar';
+import HeaderAdminDashboard from '../../components/HeaderAdminDashboard/HeaderAdminDashboard';
+import EmailManagement from '../../components/EmailManagement/EmailManagement';
+import DashboardOverview from '../../components/DashboardOverview/DashboardOverview';
+import UserManagement from '../../components/UserManagement/UserManagement';
+import TourManagement from '../../components/TourManagement/TourManagement';
+import BookingManagement from '../../components/BookingManagement/BookingManagement';
 import socket, { connectSocket } from "../../Socket/Socket";
 import sumaryApi from '../../common';
-import { jwtDecode } from "jwt-decode";
+import { toast } from 'react-toastify';
 const AdminDashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [stats, setStats] = useState({
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     connectSocket()
     socket.on("connect", () => {
       console.log("user connect......", socket.id);
-      
+
     })
     socket.on("sent", (newEmail) => {
       console.log("mail đến..........")
@@ -80,7 +80,7 @@ const AdminDashboard = () => {
     // Đánh dấu email đã đọc
     if (!email.isRead) {
       setEmails(emails.map(e =>
-        e.id === email.id ? { ...e, isRead: true } : e
+        e._id === email._id ? { ...e, isRead: true } : e
       ));
 
       // Cập nhật số email chưa đọc
@@ -91,21 +91,41 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleSendReply = () => {
+  const handleSendReply = async () => {
     if (!selectedEmail || !replyContent.trim()) return;
+    const sendMail = await fetch(sumaryApi.replyEmail.url, {
+      method: sumaryApi.replyEmail.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify({
+        userEmail: selectedEmail?.userId?.email,
+        subject: selectedEmail.subject,
+        content: replyContent
+      })
+    })
+    const data = await sendMail.json()
 
-    // Cập nhật trạng thái email đã phản hồi
-    setEmails(emails.map(e =>
-      e.id === selectedEmail.id ? { ...e, isReplied: true } : e
-    ));
+    if (data.success) {
 
-    // Giả lập gửi email
-    console.log('Gửi phản hồi đến:', selectedEmail.userEmail);
-    console.log('Nội dung:', replyContent);
+      toast.success(data.message)
 
-    // Reset form
-    setReplyContent('');
-    alert('Phản hồi đã được gửi thành công!');
+      // Cập nhật trạng thái email đã phản hồi
+      setEmails(emails.map(e =>
+        e._id === selectedEmail._id ? { ...e, isReplied: true } : e
+      ));
+
+      // Giả lập gửi email
+      console.log('Gửi phản hồi đến:', selectedEmail?.userId?.email);
+      console.log('Nội dung:', replyContent);
+
+      // Reset form
+      setReplyContent('');
+    }
+    if (data.error) {
+      toast.error(data.message)
+    }
   };
 
   const filteredEmails = emails.filter(email => {

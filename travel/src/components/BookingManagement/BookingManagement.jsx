@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import BookingDetailModal from "../BookingDetailModal/BookingDetailModal";
+import sumaryApi from "../../common";
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
@@ -8,74 +9,36 @@ const BookingManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  
+
   // Filters
   const [filters, setFilters] = useState({
-    status: 'all',
+    bookingStatus: 'all',
     search: '',
     dateRange: ''
   });
 
   // Sample data - thay thế bằng API thực tế
-  const sampleBookings = [
-    {
-      id: 'BK001',
-      tourId: 'T001',
-      tourTitle: 'Tour Hà Nội - Sapa 3 ngày 2 đêm',
-      customer: {
-        name: 'Nguyễn Văn A',
-        email: 'nguyenvana@gmail.com',
-        phone: '0123456789'
-      },
-      bookingDate: '2024-01-15',
-      travelDate: '2024-02-20',
-      numberOfPeople: 2,
-      totalPrice: 5000000,
-      status: 'confirmed',
-      paymentStatus: 'paid',
-      specialRequests: 'Yêu cầu phòng đôi, ăn chay'
-    },
-    {
-      id: 'BK002',
-      tourId: 'T002',
-      tourTitle: 'Tour Đà Nẵng - Hội An 4 ngày 3 đêm',
-      customer: {
-        name: 'Trần Thị B',
-        email: 'tranthib@gmail.com',
-        phone: '0987654321'
-      },
-      bookingDate: '2024-01-16',
-      travelDate: '2024-02-25',
-      numberOfPeople: 4,
-      totalPrice: 12000000,
-      status: 'pending',
-      paymentStatus: 'pending',
-      specialRequests: ''
-    },
-    {
-      id: 'BK003',
-      tourId: 'T003',
-      tourTitle: 'Tour Phú Quốc 5 ngày 4 đêm',
-      customer: {
-        name: 'Lê Văn C',
-        email: 'levanc@gmail.com',
-        phone: '0369852147'
-      },
-      bookingDate: '2024-01-17',
-      travelDate: '2024-03-01',
-      numberOfPeople: 3,
-      totalPrice: 15000000,
-      status: 'cancelled',
-      paymentStatus: 'refunded',
-      specialRequests: 'Có trẻ em 5 tuổi'
-    }
-  ];
 
+  const booking = async () => {
+    const fetchBookings = await fetch(sumaryApi.allbooking.url, {
+          method: sumaryApi.allbooking.method,
+           headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+  })
+      const data = await fetchBookings.json()
+      if(data.success){
+        console.log(data.data);
+        
+        setBookings(data.data)
+        setFilteredBookings(data.data)
+      }
+  }
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      setBookings(sampleBookings);
-      setFilteredBookings(sampleBookings);
+      booking()
       setLoading(false);
     }, 1000);
   }, []);
@@ -87,8 +50,8 @@ const BookingManagement = () => {
   const filterBookings = () => {
     let result = bookings;
 
-    if (filters.status !== 'all') {
-      result = result.filter(booking => booking.status === filters.status);
+    if (filters.bookingStatus !== 'all') {
+      result = result.filter(booking => booking.bookingStatus === filters.bookingStatus);
     }
 
     if (filters.search) {
@@ -142,7 +105,7 @@ const BookingManagement = () => {
       cancelled: { class: 'status-cancelled', text: 'Đã hủy' },
       completed: { class: 'status-completed', text: 'Hoàn thành' }
     };
-    
+
     const config = statusConfig[status] || { class: 'status-default', text: status };
     return <span className={`status-badge ${config.class}`}>{config.text}</span>;
   };
@@ -154,7 +117,7 @@ const BookingManagement = () => {
       refunded: { class: 'payment-refunded', text: 'Đã hoàn tiền' },
       failed: { class: 'payment-failed', text: 'Thanh toán lỗi' }
     };
-    
+
     const config = statusConfig[status] || { class: 'payment-default', text: status };
     return <span className={`payment-badge ${config.class}`}>{config.text}</span>;
   };
@@ -198,11 +161,11 @@ const BookingManagement = () => {
             className="search-input"
           />
         </div>
-        
+
         <div className="filter-group">
-          <select 
-            value={filters.status} 
-            onChange={(e) => handleFilterChange('status', e.target.value)}
+          <select
+            value={filters.bookingStatus}
+            onChange={(e) => handleFilterChange('bookingStatus', e.target.value)}
             className="filter-select"
           >
             <option value="all">Tất cả trạng thái</option>
@@ -233,40 +196,40 @@ const BookingManagement = () => {
           <tbody>
             {filteredBookings.map(booking => (
               <tr key={booking.id}>
-                <td className="booking-id">{booking.id}</td>
+                <td className="booking-id">{booking.idBooking}</td>
                 <td>
                   <div className="customer-info">
-                    <strong>{booking.customer.name}</strong>
-                    <div>{booking.customer.phone}</div>
-                    <div>{booking.customer.email}</div>
+                    <strong>{booking.fullname}</strong>
+                    <div>{booking.phone}</div>
+                    <div>{booking.email}</div>
                   </div>
                 </td>
                 <td className="tour-info">
-                  <div className="tour-title">{booking.tourTitle}</div>
-                  <div className="travel-date">Ngày đi: {booking.travelDate}</div>
+                  <div className="tour-title">{booking?.tour?.title}</div>
+                  <div className="travel-date">Ngày đi: {new Date(booking.bookingDate).toLocaleDateString()}</div>
                 </td>
-                <td>{booking.bookingDate}</td>
-                <td className="text-center">{booking.numberOfPeople}</td>
+                <td>{new Date(booking.createdAt).toLocaleDateString()}</td>
+                <td className="text-center">{booking.bookingSlots}</td>
                 <td className="text-right">{formatPrice(booking.totalPrice)}</td>
-                <td>{getStatusBadge(booking.status)}</td>
-                <td>{getPaymentStatusBadge(booking.paymentStatus)}</td>
+                <td>{getStatusBadge(booking.bookingStatus)}</td>
+                <td>{getPaymentStatusBadge(booking.payStatus)}</td>
                 <td>
                   <div className="action-buttons">
-                    <button 
+                    <button
                       className="btn-view"
                       onClick={() => handleViewDetails(booking)}
                     >
                       Chi tiết
                     </button>
-                    {booking.status === 'pending' && (
+                    {booking.bookingStatus === 'pending' && (
                       <>
-                        <button 
+                        <button
                           className="btn-confirm"
                           onClick={() => handleStatusChange(booking.id, 'confirmed')}
                         >
                           Xác nhận
                         </button>
-                        <button 
+                        <button
                           className="btn-cancel"
                           onClick={() => handleStatusChange(booking.id, 'cancelled')}
                         >
@@ -274,8 +237,8 @@ const BookingManagement = () => {
                         </button>
                       </>
                     )}
-                    {booking.status === 'confirmed' && (
-                      <button 
+                    {booking.bookingStatus === 'confirmed' && (
+                      <button
                         className="btn-complete"
                         onClick={() => handleStatusChange(booking.id, 'completed')}
                       >

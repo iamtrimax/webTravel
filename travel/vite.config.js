@@ -6,7 +6,7 @@ export default defineConfig({
     react(), tailwindcss(),
   ],
     server: {
-    hmr: false,
+    hmr: true,
   },
 })
 

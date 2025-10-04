@@ -33,7 +33,6 @@ const TourModal = ({
         url: r.secure_url,
         public_id: r.public_id,
       }));
-
       setTempImages((prev) => [...prev, ...images]);
       setTourForm((prev) => ({
         ...prev,
@@ -509,7 +508,9 @@ const TourModal = ({
             <select
               name="isActive"
               value={tourForm.isActive ? "active" : "inactive"}
-              onChange={handleChange}
+              onChange={(e) =>
+                setTourForm({ ...tourForm, isActive: e.target.value === "active" })
+              }
             >
               <option value="active">Kích hoạt</option>
               <option value="inactive">Ẩn</option>
@@ -529,8 +530,8 @@ const TourModal = ({
               {loading
                 ? "Đang xử lý..."
                 : mode === "add"
-                ? "Thêm Tour"
-                : "Cập nhật Tour"}
+                  ? "Thêm Tour"
+                  : "Cập nhật Tour"}
             </button>
           </div>
         </form>
