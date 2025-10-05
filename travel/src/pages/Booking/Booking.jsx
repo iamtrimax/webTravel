@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import './Booking.scss';
 import { jwtDecode } from 'jwt-decode';
 import sumaryApi from '../../common';
@@ -241,7 +241,7 @@ const Booking = () => {
             <div className="tours-grid">
               {filteredTours.length > 0 ? (
                 filteredTours.map(tour => (
-                  <div key={tour.id} className="tour-card">
+                  <Link to={`/detail/${tour._id}`} key={tour._id} className="tour-card">
                     <div className="card-image">
                       <img src={tour.images[0].url} alt={tour.title} />
                       <div className="card-badge">
@@ -268,7 +268,7 @@ const Booking = () => {
                         <button className="select-btn" onClick={() => handleTourSelect(tour)}>Chọn Tour</button>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <div className="no-results">
