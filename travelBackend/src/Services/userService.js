@@ -1,3 +1,4 @@
+const bookingModel = require("../models/booking.model");
 const emailModel = require("../models/email.model");
 const userModel = require("../models/user.model");
 
@@ -73,10 +74,58 @@ const deleteUserService = async (userId) => {
 
   return user;
 };
+const handlebooking = async (
+  idBooking,
+  bookingSlots,
+  bookingDate,
+  totalPrice,
+  fullname,
+  email,
+  phone,
+  address,
+  specialRequire,
+  tour
+) => {
+  const newBooking = new bookingModel({
+    idBooking,
+    bookingSlots,
+    bookingDate,
+    totalPrice,
+    fullname,
+    email,
+    phone,
+    address,
+    specialRequire,
+    tour: tour._id, // 🔥 lưu reference tới tour
+  });
+
+  let booking = await newBooking.save();
+  booking = await booking.populate("tour", "title price destination"); // 🔥 populate tour
+
+  tour.bookedSlots += bookingSlots;
+  await tour.save();
+
+  io.to("admins").emit("have new booking");
+  return booking;
+};
+const changeStatusBookingService  = async(booking, newStatus)=>{
+  const email = booking.email
+  const user = await userModel.findOne({email})
+  booking.bookingStatus = newStatus
+  await booking.save()
+
+  const socketId = onlineUsers.get(user._id.toString())
+
+  if(socketId)
+    io.to(socketId).emit(`Booking status changed`)
+  return booking
+}
 module.exports = {
   blockUser,
   setSocketServer,
   sendMail,
   updateRoleService,
   deleteUserService,
+  handlebooking,
+  changeStatusBookingService
 };

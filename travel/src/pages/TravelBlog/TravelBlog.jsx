@@ -10,6 +10,7 @@ const TravelBlog = () => {
   const [content, setContent] = useState('');
   const [images, setImages] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [expandedComments, setExpandedComments] = useState({});
   const fileInputRef = useRef(null);
 
   // Sample data
@@ -22,8 +23,10 @@ const TravelBlog = () => {
         title: 'Trải nghiệm tuyệt vời tại Đà Lạt',
         content: 'Tour Đà Lạt 3 ngày 2 đêm thật sự rất đáng giá. Cảnh đẹp, hướng dẫn viên nhiệt tình, dịch vụ chuyên nghiệp. Tôi sẽ quay lại!',
         images: [
-          'https://via.placeholder.com/400x300/4A90E2/FFFFFF?text=Đà+Lạt+1',
-          'https://via.placeholder.com/400x300/50E3C2/FFFFFF?text=Đà+Lạt+2'
+          " https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp",
+          "https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp",
+          "https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp",
+          "https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp"
         ],
         likes: 24,
         comments: 5,
@@ -102,17 +105,22 @@ const TravelBlog = () => {
 
   // Experience functions
   const handleLike = (id) => {
-    setExperiences(experiences.map(exp => 
-      exp.id === id ? { 
-        ...exp, 
+    setExperiences(experiences.map(exp =>
+      exp.id === id ? {
+        ...exp,
         likes: exp.liked ? exp.likes - 1 : exp.likes + 1,
-        liked: !exp.liked 
+        liked: !exp.liked
       } : exp
     ));
   };
-
+  const toggleComments = (expId) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [expId]: !prev[expId]
+    }));
+  };
   const handleDeleteImage = (expId, imageIndex) => {
-    setExperiences(experiences.map(exp => 
+    setExperiences(experiences.map(exp =>
       exp.id === expId ? {
         ...exp,
         images: exp.images.filter((_, index) => index !== imageIndex)
@@ -121,10 +129,10 @@ const TravelBlog = () => {
   };
 
   const handleEditImage = (expId, imageIndex, editedImage) => {
-    setExperiences(experiences.map(exp => 
+    setExperiences(experiences.map(exp =>
       exp.id === expId ? {
         ...exp,
-        images: exp.images.map((img, index) => 
+        images: exp.images.map((img, index) =>
           index === imageIndex ? editedImage : img
         )
       } : exp
@@ -141,8 +149,8 @@ const TravelBlog = () => {
 
   const addComment = (expId, commentText) => {
     if (!commentText.trim()) return;
-    
-    setExperiences(experiences.map(exp => 
+
+    setExperiences(experiences.map(exp =>
       exp.id === expId ? {
         ...exp,
         comments: exp.comments + 1,
@@ -181,16 +189,16 @@ const TravelBlog = () => {
             <h3>Chỉnh Sửa Ảnh</h3>
             <button className="close-btn" onClick={onClose}>✕</button>
           </div>
-          
+
           <div className="editor-content">
             <div className="image-preview">
-              <img 
-                src={image} 
-                alt="Editing" 
+              <img
+                src={image}
+                alt="Editing"
                 style={applyFilters()}
               />
             </div>
-            
+
             <div className="editor-controls">
               <div className="control-group">
                 <label>Độ sáng: {brightness}%</label>
@@ -202,7 +210,7 @@ const TravelBlog = () => {
                   onChange={(e) => setBrightness(e.target.value)}
                 />
               </div>
-              
+
               <div className="control-group">
                 <label>Độ tương phản: {contrast}%</label>
                 <input
@@ -213,7 +221,7 @@ const TravelBlog = () => {
                   onChange={(e) => setContrast(e.target.value)}
                 />
               </div>
-              
+
               <div className="control-group">
                 <label>Độ bão hòa: {saturation}%</label>
                 <input
@@ -226,7 +234,7 @@ const TravelBlog = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="editor-actions">
             <button className="cancel-btn" onClick={onClose}>Hủy</button>
             <button className="save-btn" onClick={handleSave}>Lưu Thay Đổi</button>
@@ -245,7 +253,7 @@ const TravelBlog = () => {
           <p className="page-subtitle">
             Cùng chia sẻ những khoảnh khắc đáng nhớ trong chuyến du lịch của bạn
           </p>
-          <button 
+          <button
             className="create-post-btn"
             onClick={() => setIsModalOpen(true)}
           >
@@ -269,7 +277,7 @@ const TravelBlog = () => {
                     <span className="post-date">{experience.date}</span>
                   </div>
                 </div>
-                <button 
+                <button
                   className="delete-btn"
                   onClick={() => handleDeleteExperience(experience.id)}
                   title="Xóa bài viết"
@@ -282,7 +290,7 @@ const TravelBlog = () => {
               <div className="card-content">
                 <h2 className="experience-title">{experience.title}</h2>
                 <p className="experience-content">{experience.content}</p>
-                
+
                 {/* Image Gallery */}
                 {experience.images && experience.images.length > 0 && (
                   <div className="image-gallery">
@@ -290,7 +298,7 @@ const TravelBlog = () => {
                       <div key={index} className="image-item">
                         <img src={image} alt={`Experience ${index + 1}`} />
                         <div className="image-actions">
-                          <button 
+                          <button
                             className="edit-image-btn"
                             onClick={() => {
                               setSelectedImage(image);
@@ -300,7 +308,7 @@ const TravelBlog = () => {
                           >
                             ✏️
                           </button>
-                          <button 
+                          <button
                             className="delete-image-btn"
                             onClick={() => handleDeleteImage(experience.id, index)}
                             title="Xóa ảnh"
@@ -317,7 +325,7 @@ const TravelBlog = () => {
               {/* Card Footer */}
               <div className="card-footer">
                 <div className="engagement-stats">
-                  <button 
+                  <button
                     className={`like-btn ${experience.liked ? 'liked' : ''}`}
                     onClick={() => handleLike(experience.id)}
                   >
@@ -329,32 +337,49 @@ const TravelBlog = () => {
                     <span className="comment-count">{experience.comments}</span>
                   </button>
                 </div>
-                
+
                 <button className="share-btn">
                   <span className="share-icon">📤</span>
                   Chia sẻ
                 </button>
               </div>
 
-              {/* Comments Section */}
+              // Trong component Experience Card, sửa phần Comments Section:
               <div className="comments-section">
-                {experience.commentList && experience.commentList.map(comment => (
-                  <div key={comment.id} className="comment-item">
-                    <div className="comment-avatar">{comment.avatar}</div>
-                    <div className="comment-content">
-                      <div className="comment-header">
-                        <span className="comment-user">{comment.user}</span>
-                        <span className="comment-time">{comment.date}</span>
+                {/* Hiển thị bình luận với toggle */}
+                <div className="comments-list">
+                  {experience.commentList && experience.commentList
+                    .slice(0, expandedComments[experience.id] ? experience.commentList.length : 5)
+                    .map(comment => (
+                      <div key={comment.id} className="comment-item">
+                        <div className="comment-avatar">{comment.avatar}</div>
+                        <div className="comment-content">
+                          <div className="comment-header">
+                            <span className="comment-user">{comment.user}</span>
+                            <span className="comment-time">{comment.date}</span>
+                          </div>
+                          <p className="comment-text">{comment.text}</p>
+                        </div>
                       </div>
-                      <p className="comment-text">{comment.text}</p>
-                    </div>
-                  </div>
-                ))}
-                
+                    ))
+                  }
+
+                  {/* Toggle button để xem thêm/ẩn bớt bình luận */}
+                  {experience.commentList && experience.commentList.length > 5 && (
+                    <button
+                      className="toggle-comments-btn"
+                      onClick={() => toggleComments(experience.id)}
+                    >
+                      {expandedComments[experience.id] ? 'Ẩn bớt' : `Xem thêm ${experience.commentList.length - 5} bình luận`}
+                    </button>
+                  )}
+                </div>
+
+                {/* Comment Input */}
                 <div className="comment-input">
-                  <input 
-                    type="text" 
-                    placeholder="Thêm bình luận..." 
+                  <input
+                    type="text"
+                    placeholder="Thêm bình luận..."
                     className="comment-field"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
@@ -363,7 +388,7 @@ const TravelBlog = () => {
                       }
                     }}
                   />
-                  <button 
+                  <button
                     className="post-comment-btn"
                     onClick={(e) => {
                       const input = e.target.previousElementSibling;
@@ -444,7 +469,7 @@ const TravelBlog = () => {
                     {images.map((image, index) => (
                       <div key={index} className="image-preview">
                         <img src={image.url} alt={`Preview ${index + 1}`} />
-                        <button 
+                        <button
                           className="remove-image-btn"
                           onClick={() => removeImage(index)}
                         >
@@ -457,8 +482,8 @@ const TravelBlog = () => {
               </div>
 
               <div className="modal-actions">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="cancel-btn"
                   onClick={() => setIsModalOpen(false)}
                 >

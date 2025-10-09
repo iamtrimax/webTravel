@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useState } from "react";
 import BookingDetailModal from "../BookingDetailModal/BookingDetailModal";
 import sumaryApi from "../../common";
+import socket from "../../Socket/Socket";
+import { toast } from "react-toastify";
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
@@ -19,28 +21,33 @@ const BookingManagement = () => {
 
   // Sample data - thay thế bằng API thực tế
 
-  const booking = async () => {
+  const fetchBooking = async () => {
     const fetchBookings = await fetch(sumaryApi.allbooking.url, {
-          method: sumaryApi.allbooking.method,
-           headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-  })
-      const data = await fetchBookings.json()
-      if(data.success){
-        console.log(data.data);
-        
-        setBookings(data.data)
-        setFilteredBookings(data.data)
+      method: sumaryApi.allbooking.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       }
+    })
+    const data = await fetchBookings.json()
+    if (data.success) {
+      console.log(data.data);
+
+      setBookings(data.data)
+      setFilteredBookings(data.data)
+    }
   }
   useEffect(() => {
     // Simulate API call
-    setTimeout(() => {
-      booking()
-      setLoading(false);
-    }, 1000);
+    fetchBooking()
+    socket.on("have new booking", () => {
+      fetchBooking()
+    })
+    setLoading(false)
+    
+    return ()=>{
+      socket.off("have new booking")
+    }
   }, []);
 
   useEffect(() => {
@@ -77,13 +84,26 @@ const BookingManagement = () => {
 
   const handleStatusChange = async (bookingId, newStatus) => {
     // Simulate API call
+    const fetchChange = await fetch(`${sumaryApi.changeStatusBooking.url.replace(':id', bookingId)}/?newstatus=${newStatus}`, {
+      method: sumaryApi.changeStatusBooking.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    })
     setLoading(true);
-    setTimeout(() => {
+    const data = await fetchChange.json()
+    if(data.success){
+      toast.success(data.message)
       setBookings(prev => prev.map(booking =>
-        booking.id === bookingId ? { ...booking, status: newStatus } : booking
+        booking._id === bookingId ? { ...booking, bookingStatus: newStatus } : booking
       ));
-      setLoading(false);
-    }, 500);
+    }
+    else{
+      toast.error(data.message)
+    }
+    setLoading(false);
+
   };
 
   const handleViewDetails = (booking) => {
@@ -140,11 +160,11 @@ const BookingManagement = () => {
             <span className="stat-label">Tổng đơn</span>
           </div>
           <div className="stat-card">
-            <span className="stat-number">{bookings.filter(b => b.status === 'confirmed').length}</span>
+            <span className="stat-number">{bookings.filter(b => b.bookingStatus === 'confirmed').length}</span>
             <span className="stat-label">Đã xác nhận</span>
           </div>
           <div className="stat-card">
-            <span className="stat-number">{bookings.filter(b => b.status === 'pending').length}</span>
+            <span className="stat-number">{bookings.filter(b => b.bookingStatus === 'pending').length}</span>
             <span className="stat-label">Chờ xác nhận</span>
           </div>
         </div>
@@ -240,7 +260,7 @@ const BookingManagement = () => {
                     {booking.bookingStatus === 'confirmed' && (
                       <button
                         className="btn-complete"
-                        onClick={() => handleStatusChange(booking.id, 'completed')}
+                        onClick={() => handleStatusChange(booking._id, 'completed')}
                       >
                         Hoàn thành
                       </button>

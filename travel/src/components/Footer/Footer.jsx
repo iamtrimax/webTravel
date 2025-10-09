@@ -46,9 +46,9 @@ const Footer = () => {
             <ul className="footer-links">
               <li><a href="/booking">Đặt Tour</a></li>
               <li><a href="/my-ticket">Vé Của Tôi</a></li>
-              <li><a href="/blog">Trải Nghiệm</a></li>
+              <li><a href="/travel-blog">Trải Nghiệm</a></li>
               <li><a href="/about">Về Chúng Tôi</a></li>
-              <li><a href="/contact">Liên Hệ</a></li>
+              <li><a href="/contact-page">Liên Hệ</a></li>
             </ul>
           </div>
 

@@ -1,3 +1,4 @@
+const {redis, getStatus} = require("../config/redisConfig");
 const asyncHandler = require("../middleware/asyncHandler");
 const emailModel = require("../models/email.model");
 const userModel = require("../models/user.model");
@@ -103,7 +104,24 @@ const toggleBlockUser = async (req, res) => {
   }
 };
 const getAllUsers = asyncHandler(async (req, res) => {
+  const isRedisConnected = getStatus()
+  if (isRedisConnected) {
+    const cacheUser = await redis.get("all-user");
+    if (cacheUser) {
+      return res.status(200).json({
+        message: "Lấy danh sách người dùng từ cache thành công",
+        data: JSON.parse(cacheUser),
+      });
+    }
+  }
+
   const users = await userModel.find().select("-password");
+  if (isRedisConnected) {
+    redis
+      .setEx("all-user", 300, JSON.stringify(users))
+      .then(() => console.log("✅ Cache updated"))
+      .catch((err) => console.log("❌ Cache update failed:", err.message));
+  }
   return res.status(200).json({
     message: "Lấy danh sách người dùng thành công",
     data: users,
@@ -137,6 +155,9 @@ const createUser = asyncHandler(async (req, res) => {
     role,
   });
   await newUser.save();
+  const isRedisConnected = getStatus()
+  if(isRedisConnected)
+    await redis.del("all-user")
   return res.status(201).json({
     success: true,
     message: "Tạo người dùng thành công",
@@ -176,7 +197,7 @@ const deleteUser = asyncHandler(async (req, res) => {
     });
   }
   const deleted = await deleteUserService(userId);
-  if(deleted)
+  if (deleted)
     return res
       .status(200)
       .json({ message: "Xoá user thành công", success: true, error: false });
@@ -191,22 +212,22 @@ const getAllEmail = asyncHandler(async (req, res) => {
 });
 // replyEmail
 const replyEmail = asyncHandler(async (req, res) => {
-  const {userEmail, subject, content} = req.body
+  const { userEmail, subject, content } = req.body;
   console.log(userEmail, subject, content);
-  if(!userEmail){
+  if (!userEmail) {
     return res.status(400).json({
       message: "bạn không thể reply email này",
       error: true,
-      success:false
-    })
+      success: false,
+    });
   }
-    await adminReplyEmail(userEmail, subject, content)
+  await adminReplyEmail(userEmail, subject, content);
 
-    return res.status(200).json({
-      message:"Đã gửi phản hồi email",
-      success: true,
-      error: fals
-    })
+  return res.status(200).json({
+    message: "Đã gửi phản hồi email",
+    success: true,
+    error: fals,
+  });
 });
 
 module.exports = {
@@ -218,5 +239,5 @@ module.exports = {
   deleteUser,
   deleteImage,
   getAllEmail,
-  replyEmail
+  replyEmail,
 };

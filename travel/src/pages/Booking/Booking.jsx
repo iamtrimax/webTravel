@@ -15,7 +15,9 @@ const Booking = () => {
   const [paymentMethod, setPaymentMethod] = useState('credit');
   const [bookingData, setBookingData] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isLoading, setIsLoading] = useState(true); // ✅ Thêm loading state
   const navigate = useNavigate()
+  const location = useLocation()
   const token = localStorage.getItem("accessToken")
   const decoded = token ? jwtDecode(token) : ''
 
@@ -26,22 +28,67 @@ const Booking = () => {
     address: '',
     specialRequests: ''
   });
+
   const fetchTours = async () => {
     try {
-      // API call để lấy danh sách tour 
+      setIsLoading(true);
       const response = await fetch(sumaryApi.getAllTours.url, {
         method: sumaryApi.getAllTours.method,
         headers: {
           'Content-Type': 'application/json',
         }
-      }); // Thay bằng endpoint thực tế
+      });
 
       const data = await response.json();
-      setTours(data.data);
+      setTours(data.data || []);
+      return data.data || []; // ✅ Trả về tours data
     } catch (error) {
       console.error('Lỗi khi tải danh sách tour:', error);
+      return [];
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // ✅ FIX: Xử lý URL parameters độc lập với tours state
+  useEffect(() => {
+    const initializeBooking = async () => {
+      const urlParams = new URLSearchParams(location.search);
+      const tourId = urlParams.get('tourId');
+      const selectedDate = urlParams.get('selectedDate');
+
+      if (tourId) {
+        // Nếu đã có tours, tìm tour ngay
+        if (tours.length > 0) {
+          const foundTour = tours.find(tour => tour._id === tourId);
+          if (foundTour) {
+            setSelectedTour(foundTour);
+            setActiveStep(2);
+            if (selectedDate) {
+              setBookingDate(selectedDate);
+            }
+          }
+        } else {
+          // Nếu chưa có tours, fetch tours trước
+          const toursData = await fetchTours();
+          const foundTour = toursData.find(tour => tour._id === tourId);
+          if (foundTour) {
+            setSelectedTour(foundTour);
+            setActiveStep(2);
+            if (selectedDate) {
+              setBookingDate(selectedDate);
+            }
+          }
+        }
+      } else {
+        // Nếu không có tourId, chỉ fetch tours bình thường
+        await fetchTours();
+      }
+    };
+
+    initializeBooking();
+  }, [location.search]); // ✅ Chỉ phụ thuộc vào location.search
+
   // Categories data
   const categories = [
     { id: 'all', name: 'Tất Cả', count: tours.length, icon: '🌍' },
@@ -96,39 +143,34 @@ const Booking = () => {
   };
 
   const handleBookingSubmit = async () => {
-    // const booking = {
-    //   id: Date.now(),
-    //   tour: selectedTour,
-    //   date: bookingDate,
-    //   travelers,
-    //   customerInfo: customerInfo,
-    //   total: selectedTour.price * travelers,
-    //   status: 'confirmed',
-    //   bookingDate: new Date().toISOString()
-    // };
-    const fetchBooking = await fetch(sumaryApi.booking.url, {
-      method: sumaryApi.booking.method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      },
-      body: JSON.stringify({
-        tourId: selectedTour._id,
-        bookingDate: new Date(bookingDate).toString(),
-        bookingSlots: travelers,
-        fullname: customerInfo.fullname,
-        phone: customerInfo.phone,
-        address: customerInfo.address,
-        specialRequire: customerInfo.specialRequests
+    try {
+      const fetchBooking = await fetch(sumaryApi.booking.url, {
+        method: sumaryApi.booking.method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({
+          tourId: selectedTour._id,
+          bookingDate: new Date(bookingDate).toString(),
+          bookingSlots: travelers,
+          fullname: customerInfo.fullname,
+          phone: customerInfo.phone,
+          address: customerInfo.address,
+          specialRequire: customerInfo.specialRequests
+        })
       })
-    })
-    const data = await fetchBooking.json()
-    if (data.success) {
-      toast.success(data.message)
-      setBookingData(data.data);
-      setActiveStep(5);
-    }else{
-      toast.error(data.message)
+      const data = await fetchBooking.json()
+      if (data.success) {
+        toast.success(data.message)
+        setBookingData(data.data);
+        setActiveStep(5);
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi đặt tour');
+      console.error('Booking error:', error);
     }
   };
 
@@ -142,11 +184,23 @@ const Booking = () => {
   const handleTravelersChange = (amount) => {
     setTravelers(prev => Math.max(1, prev + amount));
   };
-  useEffect(() => {
-    fetchTours()
-    console.log(tours);
-    
-  }, [])
+
+  // ✅ FIX: Thêm loading state cho toàn bộ page
+  if (isLoading) {
+    return (
+      <div className="booking-page">
+        <section className="booking-header">
+          <div className="container">
+            <h1 className="page-title">Đặt Tour Du Lịch</h1>
+          </div>
+        </section>
+        <div className="loading-container">
+          <div className="spinner">Đang tải...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="booking-page">
       {/* Header Section */}
@@ -175,6 +229,7 @@ const Booking = () => {
         </div>
       </section>
 
+      {/* Step 1: Tour Selection - CHỈ HIỆN KHI KHÔNG CÓ TOUR TỪ URL */}
       {/* Step 1: Tour Selection */}
       {activeStep === 1 && (
         <section className="tour-selection">
@@ -241,17 +296,20 @@ const Booking = () => {
             <div className="tours-grid">
               {filteredTours.length > 0 ? (
                 filteredTours.map(tour => (
-                  <Link to={`/detail/${tour._id}`} key={tour._id} className="tour-card">
-                    <div className="card-image">
-                      <img src={tour.images[0].url} alt={tour.title} />
-                      <div className="card-badge">
-                        {categories.find(cat => cat.id === tour.category)?.icon}
-                        {categories.find(cat => cat.id === tour.category)?.name}
+                  <div key={tour._id} className="tour-card">
+                    <Link to={`/detail/${tour._id}`}>
+
+                      <div className="card-image">
+                        <img src={tour.images[0].url} alt={tour.title} />
+                        <div className="card-badge">
+                          {categories.find(cat => cat.id === tour.category)?.icon}
+                          {categories.find(cat => cat.id === tour.category)?.name}
+                        </div>
+                        <div className="card-overlay">
+                          <button className="view-detail-btn">Xem Chi Tiết</button>
+                        </div>
                       </div>
-                      <div className="card-overlay">
-                        <button className="view-detail-btn">Xem Chi Tiết</button>
-                      </div>
-                    </div>
+                    </Link>
                     <div className="card-content">
                       <div className="tour-meta">
                         <span className="tour-duration">{`${tour.duration} ngày ${tour.duration - 1} đêm`}</span>
@@ -268,7 +326,7 @@ const Booking = () => {
                         <button className="select-btn" onClick={() => handleTourSelect(tour)}>Chọn Tour</button>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))
               ) : (
                 <div className="no-results">
@@ -300,7 +358,7 @@ const Booking = () => {
               <div className="tour-summary">
                 <h3>Tour Đã Chọn</h3>
                 <div className="summary-card">
-                  <img src={selectedTour.images[0].url} alt={selectedTour.title} />
+                  <img src={selectedTour.images[0]?.url} alt={selectedTour.title} />
                   <div className="summary-info">
                     <h4>{selectedTour.title}</h4>
                     <p>📍 {selectedTour.destination}</p>
@@ -314,7 +372,7 @@ const Booking = () => {
               <div className="date-section">
                 <h3>Chọn Ngày Khởi Hành</h3>
                 <div className="date-grid">
-                  {selectedTour.startDates.map((date, index) => (
+                  {selectedTour.startDates?.map((date, index) => (
                     <div
                       key={index}
                       className={`date-card ${bookingDate === date ? 'selected' : ''}`}
@@ -363,9 +421,14 @@ const Booking = () => {
 
               {/* Action Buttons */}
               <div className="action-buttons">
-                <button className="back-btn" onClick={() => setActiveStep(1)}>
+                <button className="back-btn" onClick={() => {
+                  setSelectedTour(null);
+                  setActiveStep(1);
+                  // ✅ FIX: Clear URL parameters khi quay lại
+                  navigate('/booking');
+                }}>
                   <i className="fas fa-arrow-left"></i>
-                  Quay Lại
+                  Quay Lại Chọn Tour
                 </button>
                 <button
                   className="next-btn"
@@ -483,7 +546,7 @@ const Booking = () => {
                 <div className="summary-details">
                   <div className="detail-item">
                     <span>Tour:</span>
-                    <span>{selectedTour.name}</span>
+                    <span>{selectedTour.title}</span>
                   </div>
                   <div className="detail-item">
                     <span>Ngày khởi hành:</span>
@@ -495,12 +558,12 @@ const Booking = () => {
                   </div>
                   <div className="detail-item">
                     <span>Đơn giá:</span>
-                    <span>{formatPrice(selectedTour.dicountPrice||selectedTour.price)}/người</span>
+                    <span>{formatPrice(selectedTour.discountPrice || selectedTour.price)}/người</span>
                   </div>
                   <div className="detail-item total-item">
                     <span>Thành tiền:</span>
                     <span className="total-price">
-                      {formatPrice(selectedTour.dicountPrice *travelers||selectedTour.price * travelers)}
+                      {formatPrice((selectedTour.discountPrice || selectedTour.price) * travelers)}
                     </span>
                   </div>
                 </div>
@@ -600,7 +663,7 @@ const Booking = () => {
                   </div>
                   <div className="detail-item">
                     <span>Tour:</span>
-                    <span>{bookingData.tour.title}</span>
+                    <span>{selectedTour.title}</span>
                   </div>
                   <div className="detail-item">
                     <span>Ngày khởi hành:</span>
@@ -624,14 +687,14 @@ const Booking = () => {
                   </div>
                   <div className="detail-item">
                     <span>Trạng thái:</span>
-                    <span className="status confirmed">{bookingData.bookingStatus==="pending"?"Chưa xác nhận":"Xác nhận"}</span>
+                    <span className="status confirmed">{bookingData.bookingStatus === "pending" ? "Chưa xác nhận" : "Xác nhận"}</span>
                   </div>
                 </div>
               </div>
 
               <div className="action-buttons">
                 <button className="print-btn">
-                  <i className="fas fa-print"></i>r
+                  <i className="fas fa-print"></i>
                   In Vé
                 </button>
                 <button className="email-btn">

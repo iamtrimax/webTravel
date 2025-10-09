@@ -9,6 +9,7 @@ const Contact = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState('');
     const token = localStorage.getItem("accessToken")
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -29,18 +30,15 @@ const Contact = () => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(formData)
-
             })
             const data = await sendMail.json()
             if (data.success) {
-
                 setSubmitStatus("success")
                 setSubmitStatus('success');
                 setFormData({ subject: '', content: '' });
             }
             if (data.error) {
                 setSubmitStatus('error');
-
             }
 
             // Reset status sau 5 giây
@@ -54,82 +52,82 @@ const Contact = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-16">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                    <h1 className="text-4xl font-bold text-white mb-4">
                         Liên Hệ Với Chúng Tôi
                     </h1>
-                    <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                    <p className="text-xl text-gray-300 max-w-3xl mx-auto">
                         Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn.
                         Hãy gửi thông tin liên hệ và chúng tôi sẽ phản hồi trong thời gian sớm nhất.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Contact Information */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-2xl shadow-lg p-8 h-full">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 h-full border border-gray-700/50">
+                            <h2 className="text-2xl font-bold text-white mb-8">
                                 Thông Tin Liên Hệ
                             </h2>
 
                             {/* Phone */}
                             <div className="flex items-start mb-8">
-                                <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="bg-blue-500/20 p-3 rounded-lg mr-4 border border-blue-500/30">
+                                    <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 mb-1">Điện Thoại</h3>
-                                    <p className="text-gray-600">+84 123 456 789</p>
-                                    <p className="text-gray-600">+84 987 654 321</p>
+                                    <h3 className="font-semibold text-white mb-1">Điện Thoại</h3>
+                                    <p className="text-gray-300">+84 123 456 789</p>
+                                    <p className="text-gray-300">+84 987 654 321</p>
                                 </div>
                             </div>
 
                             {/* Email */}
                             <div className="flex items-start mb-8">
-                                <div className="bg-green-100 p-3 rounded-lg mr-4">
-                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="bg-green-500/20 p-3 rounded-lg mr-4 border border-green-500/30">
+                                    <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                                    <p className="text-gray-600">support@travelcompany.com</p>
-                                    <p className="text-gray-600">info@travelcompany.com</p>
+                                    <h3 className="font-semibold text-white mb-1">Email</h3>
+                                    <p className="text-gray-300">support@travelcompany.com</p>
+                                    <p className="text-gray-300">info@travelcompany.com</p>
                                 </div>
                             </div>
 
                             {/* Address */}
                             <div className="flex items-start mb-8">
-                                <div className="bg-purple-100 p-3 rounded-lg mr-4">
-                                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="bg-purple-500/20 p-3 rounded-lg mr-4 border border-purple-500/30">
+                                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 mb-1">Địa Chỉ</h3>
-                                    <p className="text-gray-600">123 Đường ABC</p>
-                                    <p className="text-gray-600">Quận XYZ, TP. Hồ Chí Minh</p>
+                                    <h3 className="font-semibold text-white mb-1">Địa Chỉ</h3>
+                                    <p className="text-gray-300">123 Đường ABC</p>
+                                    <p className="text-gray-300">Quận XYZ, TP. Hồ Chí Minh</p>
                                 </div>
                             </div>
 
                             {/* Working Hours */}
                             <div className="flex items-start">
-                                <div className="bg-orange-100 p-3 rounded-lg mr-4">
-                                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="bg-orange-500/20 p-3 rounded-lg mr-4 border border-orange-500/30">
+                                    <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 mb-1">Giờ Làm Việc</h3>
-                                    <p className="text-gray-600">Thứ 2 - Thứ 6: 8:00 - 18:00</p>
-                                    <p className="text-gray-600">Thứ 7: 8:00 - 12:00</p>
-                                    <p className="text-gray-600">Chủ nhật: Nghỉ</p>
+                                    <h3 className="font-semibold text-white mb-1">Giờ Làm Việc</h3>
+                                    <p className="text-gray-300">Thứ 2 - Thứ 6: 8:00 - 18:00</p>
+                                    <p className="text-gray-300">Thứ 7: 8:00 - 12:00</p>
+                                    <p className="text-gray-300">Chủ nhật: Nghỉ</p>
                                 </div>
                             </div>
                         </div>
@@ -137,19 +135,19 @@ const Contact = () => {
 
                     {/* Contact Form */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white rounded-2xl shadow-lg p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700/50">
+                            <h2 className="text-2xl font-bold text-white mb-8">
                                 Gửi Tin Nhắn Cho Chúng Tôi
                             </h2>
 
                             {/* Status Messages */}
                             {submitStatus === 'success' && (
-                                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg backdrop-blur-sm">
                                     <div className="flex items-center">
-                                        <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
-                                        <span className="text-green-800 font-medium">
+                                        <span className="text-green-300 font-medium">
                                             Tin nhắn đã được gửi thành công! Chúng tôi sẽ phản hồi sớm nhất.
                                         </span>
                                     </div>
@@ -157,12 +155,12 @@ const Contact = () => {
                             )}
 
                             {submitStatus === 'error' && (
-                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg backdrop-blur-sm">
                                     <div className="flex items-center">
-                                        <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                         </svg>
-                                        <span className="text-red-800 font-medium">
+                                        <span className="text-red-300 font-medium">
                                             Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại sau.
                                         </span>
                                     </div>
@@ -170,18 +168,17 @@ const Contact = () => {
                             )}
 
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                {
-                                    token ? ("") :
-                                        (
-                                            <span className="text-red-800 font-medium">
-                                                Đăng nhập để gửi tin nhắn cho chúng tôi
-                                            </span>
-                                        )
-                                }
+                                {!token && (
+                                    <div className="p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg backdrop-blur-sm">
+                                        <span className="text-yellow-300 font-medium">
+                                            Đăng nhập để gửi tin nhắn cho chúng tôi
+                                        </span>
+                                    </div>
+                                )}
 
                                 {/* Subject Field */}
                                 <div>
-                                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">
                                         Tiêu Đề *
                                     </label>
                                     <input
@@ -191,14 +188,15 @@ const Contact = () => {
                                         value={formData.subject}
                                         onChange={handleChange}
                                         required
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                        disabled={!token}
+                                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-white placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
                                         placeholder="Tiêu đề tin nhắn"
                                     />
                                 </div>
 
                                 {/* Message Field */}
                                 <div>
-                                    <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="content" className="block text-sm font-medium text-gray-300 mb-2">
                                         Nội Dung Tin Nhắn *
                                     </label>
                                     <textarea
@@ -207,8 +205,9 @@ const Contact = () => {
                                         value={formData.content}
                                         onChange={handleChange}
                                         required
+                                        disabled={!token}
                                         rows={6}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-white placeholder-gray-400 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                                         placeholder="Nhập nội dung tin nhắn của bạn..."
                                     />
                                 </div>
@@ -219,8 +218,8 @@ const Contact = () => {
                                         type="submit"
                                         disabled={!token || isSubmitting}
                                         className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 ${!token || isSubmitting
-                                            ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                                            ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                            : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transform hover:scale-105'
                                             }`}
                                     >
                                         {isSubmitting ? (
@@ -242,13 +241,15 @@ const Contact = () => {
                 </div>
 
                 {/* Map Section */}
-                <div className="mt-16 bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <div className="h-96 bg-gray-200 flex items-center justify-center">
-                        <div className="text-center">
+                <div className="mt-16 bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-gray-700/50">
+                    <div className="h-96 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center relative">
+                        <div className="absolute inset-0 bg-black/20"></div>
+                        <div className="text-center relative z-10">
                             <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                             </svg>
-                            <p className="text-gray-500 text-lg">Bản đồ sẽ được hiển thị tại đây</p>
+                            <p className="text-gray-300 text-lg font-medium">Bản đồ sẽ được hiển thị tại đây</p>
+                            <p className="text-gray-400 mt-2">Đang cập nhật...</p>
                         </div>
                     </div>
                 </div>

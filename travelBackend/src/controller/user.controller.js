@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("../middleware/asyncHandler");
 const {sendMail } = require("../Services/userService");
+const redis = require("../config/redisConfig");
 require("dotenv").config();
 
 const generateAccessToken = (user, exp) => {

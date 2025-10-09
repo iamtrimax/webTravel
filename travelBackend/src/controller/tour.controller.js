@@ -23,7 +23,14 @@ const createTour = asyncHandler(async (req, res) => {
     isActive,
   } = req.body;
 
-  if (!title || !description || !price || !duration || !totalSlots || !destination) {
+  if (
+    !title ||
+    !description ||
+    !price ||
+    !duration ||
+    !totalSlots ||
+    !destination
+  ) {
     res.status(400);
     throw new Error("Thiếu thông tin bắt buộc");
   }
@@ -88,7 +95,7 @@ const updateTour = asyncHandler(async (req, res) => {
   });
 });
 const deleteTour = asyncHandler(async (req, res) => {
-  const tourId = req.params.id; 
+  const tourId = req.params.id;
   const tour = await Tour.findByIdAndDelete(tourId);
   if (!tour) {
     res.status(404);
@@ -106,16 +113,66 @@ const toggleTourStatus = asyncHandler(async (req, res) => {
   if (!tour) {
     res.status(404);
     throw new Error("Tour không tồn tại");
-  } 
+  }
   tour.isActive = !tour.isActive;
   await tour.save();
-  return res.status(200).json({success: true, error: false, data: tour });
+  return res.status(200).json({ success: true, error: false, data: tour });
 });
+const getTourDetail = asyncHandler(async (req, res) => {
+  const tourId = req.params.id;
 
+  const tour = await Tour.findById(tourId).populate(
+    "rating.details.userId",
+    "username"
+  );
+  if (!tour) {
+    throw new Error("không tìm thấy tour");
+  }
+  return res.status(200).json({
+    data: tour,
+    success: true,
+    error: false,
+  });
+});
+const addReview = asyncHandler(async (req, res) => {
+  const tourId = req.params.id;
+  const tour = await Tour.findById(tourId);
+  if (!tour) throw new Error("Không tìm thấy tour");
+  const user = req.userId;
+  const { rating, comment } = req.body;
+  tour["addRating"](user, rating, comment || "");
+  await tour.save();
+  res.status(200).json({
+    data: tour,
+    success: true,
+    error: false,
+  });
+});
+const getAllReview = asyncHandler(async (req, res) => {
+  const tourId = req.params.id;
+  const tour = await Tour.findById(tourId)
+    .populate("rating.details.userId", "username")
+    .select(
+      "rating.details rating.average rating.count details.createdAt"
+    );
+  if (!tour) throw new Error("không tồn tại tour này");
+  res.status(200).json({
+    data: tour,
+    summary: {
+      averageRating: tour.rating.average,
+      totalRatings: tour.rating.count,
+    },
+    success: true,
+    error: false,
+  });
+});
 module.exports = {
   createTour,
   getAllTours,
   updateTour,
   deleteTour,
-  toggleTourStatus
+  toggleTourStatus,
+  getTourDetail,
+  addReview,
+  getAllReview,
 };

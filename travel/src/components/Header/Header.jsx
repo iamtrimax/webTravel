@@ -7,28 +7,33 @@ const Header = ({ onAuthClick, user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const navItems = [
+  const allNavItems = [
     { label: 'Đặt Tour', path: '/booking' },
-    { label: 'VÉ CỦA TÔI', path: '/my-ticket' },
-    { label: 'Trải Nghiệm ', path: '/travel-blog' },
-    { label: 'Liên hệ ', path: '/contact-page' }
+    { label: 'VÉ CỦA TÔI', path: '/my-ticket', requiresAuth: true },
+    { label: 'Trải Nghiệm', path: '/travel-blog' },
+    { label: 'Liên hệ', path: '/contact-page' }
   ];
+
+  // Filter nav items dựa trên authentication
+  const navItems = allNavItems.filter(item =>
+    !item.requiresAuth || (item.requiresAuth && user)
+  );
   // Cập nhật activeTab khi location thay đổi
-  useEffect(() => {    
+  useEffect(() => {
     const currentPath = location.pathname;
     if (currentPath === '/') {
       setActiveTab('/');
       return;
     } else {
-        const activeItem = navItems.find(item => item.path === currentPath);
-        if (activeItem) {
-          setActiveTab(activeItem.label);
-        }
+      const activeItem = navItems.find(item => item.path === currentPath);
+      if (activeItem) {
+        setActiveTab(activeItem.label);
+      }
     }
   }, [location, navItems]);
 
   return (
-    
+
     <header className="cinene-header">
       <div className="header-top">
         <div className="container">

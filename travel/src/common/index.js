@@ -37,9 +37,21 @@ const sumaryApi = {
     url: `${url_api}/tours`,
     method: "GET",
   },
+  getTourDetail: {
+    url: `${url_api}/tour-detail/:id`,
+    method: "GET",
+  },
   toggleTourStatus: {
     url: `${url_api}/admin/tour/:id/status`,
     method: "PUT",
+  },
+  addReview: {
+    url: `${url_api}/add-review/:id`,
+    method: "POST",
+  },
+  getAllReview: {
+    url: `${url_api}/get-all-review/:id`,
+    method: "GET",
   },
   blockUser: {
     url: `${url_api}/admin/user/:id/block`,
@@ -91,6 +103,14 @@ const sumaryApi = {
   },
   allbooking: {
     url: `${url_api}/admin/allbooking`,
+    method: "GET",
+  },
+  changeStatusBooking: {
+    url: `${url_api}/admin/confirm/:id`,
+    method: "PUT",
+  },
+  getBookingByAccount: {
+    url: `${url_api}/get-booking-by-account`,
     method: "GET",
   },
 };
