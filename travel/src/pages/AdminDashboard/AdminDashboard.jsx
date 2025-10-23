@@ -10,6 +10,7 @@ import BookingManagement from '../../components/BookingManagement/BookingManagem
 import socket, { connectSocket } from "../../Socket/Socket";
 import sumaryApi from '../../common';
 import { toast } from 'react-toastify';
+import AdminPostManagement from '../../components/AdminPostManagement/AdminPostManagement';
 const AdminDashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [stats, setStats] = useState({
@@ -140,6 +141,8 @@ const AdminDashboard = () => {
         return <UserManagement />;
       case 'tours':
         return <TourManagement />;
+      case 'posts':
+        return <AdminPostManagement />;
       case 'tickets':
         return <BookingManagement />;
       case 'emails':

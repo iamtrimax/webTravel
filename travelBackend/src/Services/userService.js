@@ -1,6 +1,11 @@
 const bookingModel = require("../models/booking.model");
 const emailModel = require("../models/email.model");
+const Tour = require("../models/tour.model");
 const userModel = require("../models/user.model");
+const {
+  mailAutoCancelBooking,
+  mailPayConfirm,
+} = require("../utils/email.utils");
 
 let io, onlineUsers;
 
@@ -84,8 +89,11 @@ const handlebooking = async (
   phone,
   address,
   specialRequire,
-  tour
+  tour,
+  payStatus
 ) => {
+  const user = await userModel.findOne({ email }).select("username");
+  const username = user.username;
   const newBooking = new bookingModel({
     idBooking,
     bookingSlots,
@@ -96,30 +104,73 @@ const handlebooking = async (
     phone,
     address,
     specialRequire,
-    tour: tour._id, // 🔥 lưu reference tới tour
+    tour: tour._id,
+    payStatus,
   });
 
   let booking = await newBooking.save();
-  booking = await booking.populate("tour", "title price destination"); // 🔥 populate tour
-
-  tour.bookedSlots += bookingSlots;
-  await tour.save();
-
+  booking = await booking.populate("tour", "title price destination");
+  await Tour.updateOne(
+    { _id: tour._id },
+    { $inc: { bookedSlots: Number(bookingSlots) } }
+  );
+  if (payStatus === "paid") {
+    await mailPayConfirm(
+      email,
+      idBooking,
+      username,
+      totalPrice,
+      booking.createdAt
+    );
+  }
   io.to("admins").emit("have new booking");
   return booking;
 };
-const changeStatusBookingService  = async(booking, newStatus)=>{
-  const email = booking.email
-  const user = await userModel.findOne({email})
-  booking.bookingStatus = newStatus
-  await booking.save()
+const changeStatusBookingService = async (booking, newStatus) => {
+  const email = booking.email;
+  const user = await userModel.findOne({ email });
+  booking.bookingStatus = newStatus;
+  await booking.save();
+  if (newStatus === "cancelled") {
+    const tour = await Tour.findById(booking.tour._id);
+    tour.bookedSlots -= booking.bookingSlots;
+    await tour.save();
+  }
+  const socketId = onlineUsers.get(user._id.toString());
 
-  const socketId = onlineUsers.get(user._id.toString())
+  if (socketId) io.to(socketId).emit(`Booking status changed`);
+  return booking;
+};
+const cancelBookingService = async (booking) => {
+  if (["cancelled", "completed", "expired"].includes(booking.bookingStatus)) {
+    res.status(400);
+    throw new Error("Vé không thể hủy");
+  }
 
-  if(socketId)
-    io.to(socketId).emit(`Booking status changed`)
-  return booking
-}
+  booking.bookingStatus = "cancelled";
+  await booking.save();
+  const tour = await Tour.findById(booking.tour._id);
+  tour.bookedSlots -= booking.bookingSlots;
+  await tour.save();
+  io.to("admins").emit(`Booking cancelled`);
+  return booking;
+};
+const autoCancelBookingService = async (booking) => {
+  const email = booking.email;
+  const updateBooking = await bookingModel.findByIdAndUpdate(booking._id, {
+    $set: {
+      bookingStatus: "cancelled",
+      cancelDate: new Date(),
+      cancelReason: "Hết hạn thanh toán vé trước ngày khởi hành",
+    },
+  });
+  const tour = await Tour.findById(booking.tour._id);
+
+  tour.bookedSlots -= booking.bookingSlots;
+  await tour.save();
+  await mailAutoCancelBooking(email, booking.idBooking, new Date());
+  return updateBooking;
+};
 module.exports = {
   blockUser,
   setSocketServer,
@@ -127,5 +178,7 @@ module.exports = {
   updateRoleService,
   deleteUserService,
   handlebooking,
-  changeStatusBookingService
+  changeStatusBookingService,
+  cancelBookingService,
+  autoCancelBookingService,
 };

@@ -2455,6 +2455,7 @@
 .btn-view,
 .btn-confirm,
 .btn-cancel,
+.btn-confirmPayment,
 .btn-complete {
   padding: 6px 12px;
   border: none;
@@ -2474,6 +2475,10 @@
 }
 .btn-cancel {
   background: #f44336;
+  color: white;
+}
+.btn-confirmPayment {
+  background: purple;
   color: white;
 }
 .btn-complete {

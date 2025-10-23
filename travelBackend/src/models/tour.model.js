@@ -193,7 +193,7 @@ tourSchema.methods.addRating = function(userId, ratingValue, comment = '') {
     this.rating.details[existingRatingIndex].rating = ratingValue;
     this.rating.details[existingRatingIndex].comment = comment;
     this.rating.details[existingRatingIndex].createdAt = new Date();
-    
+    this.rating.count+=0
     // Cập nhật average rating
     this.rating.average = ((this.rating.average * this.rating.count) - oldRating + ratingValue) / this.rating.count;
   } else {

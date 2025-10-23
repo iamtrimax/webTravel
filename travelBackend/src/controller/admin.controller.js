@@ -1,4 +1,4 @@
-const {redis, getStatus} = require("../config/redisConfig");
+const { redis, getStatus } = require("../config/redisConfig");
 const asyncHandler = require("../middleware/asyncHandler");
 const emailModel = require("../models/email.model");
 const userModel = require("../models/user.model");
@@ -104,7 +104,7 @@ const toggleBlockUser = async (req, res) => {
   }
 };
 const getAllUsers = asyncHandler(async (req, res) => {
-  const isRedisConnected = getStatus()
+  const isRedisConnected = getStatus();
   if (isRedisConnected) {
     const cacheUser = await redis.get("all-user");
     if (cacheUser) {
@@ -155,9 +155,8 @@ const createUser = asyncHandler(async (req, res) => {
     role,
   });
   await newUser.save();
-  const isRedisConnected = getStatus()
-  if(isRedisConnected)
-    await redis.del("all-user")
+  const isRedisConnected = getStatus();
+  if (isRedisConnected) await redis.del("all-user");
   return res.status(201).json({
     success: true,
     message: "Tạo người dùng thành công",
@@ -226,7 +225,7 @@ const replyEmail = asyncHandler(async (req, res) => {
   return res.status(200).json({
     message: "Đã gửi phản hồi email",
     success: true,
-    error: fals,
+    error: false,
   });
 });
 

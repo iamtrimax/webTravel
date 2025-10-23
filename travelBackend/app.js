@@ -5,8 +5,11 @@ const route = require("./src/Route/routes");
 const connectMongoDb = require("./src/config/dbConfig");
 const errorHandler = require("./src/middleware/errorHandler");
 const { Server } = require("socket.io");
-const { setSocketServer } = require("./src/Services/userService");
+const { setSocketServer} = require("./src/Services/userService");
 const jwt = require("jsonwebtoken");
+const cron = require("node-cron");
+const { autoCancelBooking } = require("./src/controller/booking.controller");
+const { autoChangeActive } = require("./src/controller/tour.controller");
 
 const app = express();
 const PORT = 3000;
@@ -22,6 +25,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api", route);
 app.use(errorHandler);
+
+cron.schedule("*/2 * * * *", autoCancelBooking)
+cron.schedule("*/2 * * * *", autoChangeActive)
+
 connectMongoDb().then(() => {
   const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
@@ -41,20 +48,12 @@ connectMongoDb().then(() => {
     
  // Kiểm tra nhiều vị trí có thể chứa token
   const token = 
-    socket.handshake.auth?.token
-  
-  console.log("Token search result:", {
-    auth: socket.handshake.auth?.token,
-  })    
-
-    
+    socket.handshake.auth?.token    
     if (!token) return next(new Error("không có token"));
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Decoded payload:", decoded);
       socket.userId = decoded.id;
       socket.role = decoded.role;
-      console.log("role socket.......",decoded.role);
       next()
     } catch (error) {
       console.error("Socket auth error:", error);

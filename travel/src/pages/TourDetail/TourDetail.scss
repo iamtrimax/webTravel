@@ -12,10 +12,14 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
 // Base Styles
 .tour-detail-page {
-  background: linear-gradient(135deg, rgba($dark-color, 0.95) 0%, rgba($secondary-color, 0.9) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba($dark-color, 0.95) 0%,
+    rgba($secondary-color, 0.9) 100%
+  );
   min-height: 100vh;
   color: $text-color;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
 
   .container {
     max-width: 1200px;
@@ -93,7 +97,11 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   .back-btn {
-    background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+    background: linear-gradient(
+      135deg,
+      $primary-color,
+      darken($primary-color, 10%)
+    );
     color: $light-color;
     padding: 0.8rem 1.5rem;
     border-radius: 25px;
@@ -109,8 +117,12 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 // Main Content Layout
@@ -145,7 +157,11 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       position: absolute;
       top: 1rem;
       right: 1rem;
-      background: linear-gradient(135deg, $primary-color, darken($primary-color, 15%));
+      background: linear-gradient(
+        135deg,
+        $primary-color,
+        darken($primary-color, 15%)
+      );
       color: $light-color;
       padding: 0.5rem 1rem;
       border-radius: 25px;
@@ -175,7 +191,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     &::-webkit-scrollbar-thumb {
       background: rgba($accent-color, 0.5);
       border-radius: 3px;
-      
+
       &:hover {
         background: rgba($accent-color, 0.7);
       }
@@ -252,9 +268,9 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         background: rgba($accent-color, 0.15);
         color: $light-color;
         font-weight: 600;
-        
+
         &::before {
-          content: '✓ ';
+          content: "✓ ";
           color: $success-color;
         }
       }
@@ -266,7 +282,11 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 .booking-action-left {
   .book-tour-btn {
     width: 100%;
-    background: linear-gradient(135deg, $primary-color, darken($primary-color, 15%));
+    background: linear-gradient(
+      135deg,
+      $primary-color,
+      darken($primary-color, 15%)
+    );
     color: $light-color;
     border: none;
     padding: 1rem 1.5rem;
@@ -418,7 +438,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         color: $light-color;
 
         &::after {
-          content: '';
+          content: "";
           position: absolute;
           bottom: -1px;
           left: 0;
@@ -449,11 +469,38 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         font-size: 1.5rem;
       }
 
-      .tour-description {
-        line-height: 1.7;
-        margin-bottom: 2rem;
-        font-size: 1.1rem;
-        color: rgba($light-color, 0.9);
+      .tour-description-container {
+        position: relative;
+      }
+
+      .tour-description.collapsed {
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Giới hạn số dòng */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-height: 4.5em; /* ~3 dòng */
+      }
+
+      .tour-description.expanded {
+        display: block;
+        max-height: none;
+      }
+
+      .read-more-btn {
+        background: linear-gradient(135deg, $primary-color, $accent-color);
+        border: none;
+        color: $light-color;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 1rem;
+        transition: all $transition-speed $easing;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+        }
       }
     }
   }
@@ -499,7 +546,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
 
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       left: 30px;
       top: 0;
@@ -560,7 +607,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
           padding-left: 1.5rem;
 
           &::before {
-            content: '•';
+            content: "•";
             color: $accent-color;
             font-weight: bold;
             position: absolute;
@@ -635,7 +682,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     &.editable {
       cursor: pointer;
-      
+
       &:hover {
         color: $warning-color;
         transform: scale(1.2);
@@ -657,7 +704,11 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   .add-review-btn {
-    background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+    background: linear-gradient(
+      135deg,
+      $primary-color,
+      darken($primary-color, 10%)
+    );
     color: $light-color;
     border: none;
     padding: 0.8rem 1.5rem;
@@ -671,6 +722,53 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       box-shadow: 0 5px 15px rgba($primary-color, 0.3);
     }
   }
+}
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.review-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.review-actions {
+  position: relative;
+}
+
+.review-actions-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #666;
+}
+
+.review-actions-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  min-width: 120px;
+}
+
+.delete-review-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: #e74c3c;
 }
 
 // Rating Summary
@@ -834,7 +932,11 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
 // Review Modal
 .booking-modal {
-  background: linear-gradient(135deg, rgba($dark-color, 0.95) 0%, rgba($secondary-color, 0.9) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba($dark-color, 0.95) 0%,
+    rgba($secondary-color, 0.9) 100%
+  );
   border-radius: 20px;
   width: 100%;
   max-width: 500px;
@@ -878,7 +980,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   .modal-content {
     padding: 2rem;
     margin: 0 auto;
-    
+
     .review-form {
       h4 {
         color: $light-color;
@@ -904,7 +1006,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
           .star-rating {
             .star {
               font-size: 2rem;
-              
+
               &.editable:hover {
                 transform: scale(1.3);
               }
@@ -986,7 +1088,11 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .confirm-btn {
-      background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+      background: linear-gradient(
+        135deg,
+        $primary-color,
+        darken($primary-color, 10%)
+      );
       color: $light-color;
 
       &:hover {
@@ -1100,7 +1206,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   .tour-details-tabs {
     .tab-headers {
       flex-wrap: wrap;
-      
+
       .tab-header {
         flex: 1;
         min-width: 120px;
@@ -1160,7 +1266,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   .departure-dates-horizontal {
     .date-list-horizontal {
       gap: 0.5rem;
-      
+
       .date-item {
         padding: 0.6rem 0.8rem;
         font-size: 0.85rem;
@@ -1236,7 +1342,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     background: white;
     color: black;
   }
-  
+
   .breadcrumb,
   .booking-action-left,
   .add-review-btn {

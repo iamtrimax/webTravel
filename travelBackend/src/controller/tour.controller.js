@@ -152,9 +152,7 @@ const getAllReview = asyncHandler(async (req, res) => {
   const tourId = req.params.id;
   const tour = await Tour.findById(tourId)
     .populate("rating.details.userId", "username")
-    .select(
-      "rating.details rating.average rating.count details.createdAt"
-    );
+    .select("rating.details rating.average rating.count details.createdAt");
   if (!tour) throw new Error("không tồn tại tour này");
   res.status(200).json({
     data: tour,
@@ -166,6 +164,37 @@ const getAllReview = asyncHandler(async (req, res) => {
     error: false,
   });
 });
+const deleteReview = asyncHandler(async (req, res) => {
+  const tourId = req.params.id;
+  const userId = req.params.userId;
+  const tour = await Tour.findById(tourId);
+  if (!tour) throw new Error("Không tìm thấy tour");
+  tour["removeRating"](userId);
+  await tour.save();
+  res.status(200).json({
+    data: tour,
+    success: true,
+    error: false,
+  });
+});
+const autoChangeActive = async () => {
+  const tours = await Tour.find();
+
+  for (const tour of tours) {
+    // Kiểm tra xem có ít nhất 1 ngày khởi hành trong tương lai không
+    const hasFutureStartDate = tour.startDates.some(
+      (date) => new Date(date) > new Date()
+    );
+
+    // Nếu KHÔNG có ngày khởi hành tương lai => tắt tour
+    if (!hasFutureStartDate && tour.isActive===true) {
+      tour.isActive = false;
+      await tour.save();
+      console.log(`Tour ${tour.title} đã được tắt (hết ngày khởi hành).`);
+    }
+  }
+};
+
 module.exports = {
   createTour,
   getAllTours,
@@ -175,4 +204,6 @@ module.exports = {
   getTourDetail,
   addReview,
   getAllReview,
+  deleteReview,
+  autoChangeActive
 };

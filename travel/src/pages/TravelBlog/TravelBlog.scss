@@ -373,7 +373,6 @@ $border-color: rgba(229, 9, 20, 0.2);
 
     &:hover {
       background: rgba($dark-color, 0.7);
-      transform: translateX(5px);
       transition: all 0.3s ease;
     }
   }
@@ -393,7 +392,6 @@ $border-color: rgba(229, 9, 20, 0.2);
 
     &:hover {
       background: rgba($accent-color, 0.2);
-      transform: scale(1.02);
     }
   }
 

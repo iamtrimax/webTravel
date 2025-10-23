@@ -53,6 +53,10 @@ const sumaryApi = {
     url: `${url_api}/get-all-review/:id`,
     method: "GET",
   },
+  deleteReview: {
+    url: `${url_api}/delete-review/:id/:userId`,
+    method: "DELETE",
+  },
   blockUser: {
     url: `${url_api}/admin/user/:id/block`,
     method: "POST",
@@ -113,5 +117,41 @@ const sumaryApi = {
     url: `${url_api}/get-booking-by-account`,
     method: "GET",
   },
+  cancelBooking: {
+    url: `${url_api}/cancel-booking/:id`,
+    method: "DELETE",
+  },
+  changePayStatus: {
+    url: `${url_api}/admin/change-pay-status/:id`,
+    method: "PUT",
+  },
+  postShare: {
+    url: `${url_api}/post`,
+    method: "POST",
+  },
+  getAllPosts: {
+    url: `${url_api}/posts`,
+    method: "GET",
+  },
+  likePost: {
+    url: `${url_api}/like-post/:id`,
+    method: "POST",
+  },
+  deletePost: {
+    url: `${url_api}/post/:id`,
+    method: "DELETE",
+  },
+  postComment: {
+    url: `${url_api}/comment-post/:id`,
+    method: "POST",
+  },
+  deleteComment: {
+    url: `${url_api}/comment-post/:id/:commentId`,
+    method: "DELETE",
+  },
+  paymentPayOS:{
+    url: `${url_api}/payments/payos-createlink`,
+    method: "POST",
+  }
 };
 export default sumaryApi;

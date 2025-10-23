@@ -1,9 +1,9 @@
 import React from 'react'
 import { useState } from 'react';
 
-const SideBar = ({activeMenu, setActiveMenu, unreadEmails}) => {
+const SideBar = ({ activeMenu, setActiveMenu, unreadEmails }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    
+
 
 
 
@@ -47,6 +47,12 @@ const SideBar = ({activeMenu, setActiveMenu, unreadEmails}) => {
                         onClick={() => handleMenuClick('tours')}
                     >
                         🏝️ Quản lý Tour
+                    </button>
+                    <button
+                        className={`nav-item ${activeMenu === 'posts' ? 'active' : ''}`}
+                        onClick={() => handleMenuClick('posts')}
+                    >
+                        📄 Quản lý bài viết
                     </button>
                     <button
                         className={`nav-item ${activeMenu === 'tickets' ? 'active' : ''}`}

@@ -11,8 +11,8 @@ const redis = createClient({
 let isRedisConnected = false;
 
 redis.on("error", (err) => {
-    console.error("❌ Redis error:", err.message);
     isRedisConnected = false;
+    throw new Error("❌ Redis error:", err.message);
 });
 
 redis.on("connect", () => {

@@ -4,6 +4,7 @@ import BookingDetailModal from "../BookingDetailModal/BookingDetailModal";
 import sumaryApi from "../../common";
 import socket from "../../Socket/Socket";
 import { toast } from "react-toastify";
+import formatPrice from "../../helper/formatPrice";
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
@@ -43,9 +44,15 @@ const BookingManagement = () => {
     socket.on("have new booking", () => {
       fetchBooking()
     })
+    socket.on("Booking cancelled", () => {
+      fetchBooking()
+    })
+    socket.on("Booking payment status changed", () => {
+      fetchBooking()
+    })
     setLoading(false)
-    
-    return ()=>{
+
+    return () => {
       socket.off("have new booking")
     }
   }, []);
@@ -93,13 +100,13 @@ const BookingManagement = () => {
     })
     setLoading(true);
     const data = await fetchChange.json()
-    if(data.success){
+    if (data.success) {
       toast.success(data.message)
       setBookings(prev => prev.map(booking =>
         booking._id === bookingId ? { ...booking, bookingStatus: newStatus } : booking
       ));
     }
-    else{
+    else {
       toast.error(data.message)
     }
     setLoading(false);
@@ -111,12 +118,7 @@ const BookingManagement = () => {
     setShowDetailModal(true);
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
-  };
+
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -141,7 +143,28 @@ const BookingManagement = () => {
     const config = statusConfig[status] || { class: 'payment-default', text: status };
     return <span className={`payment-badge ${config.class}`}>{config.text}</span>;
   };
-
+  const handlePayStatusChange = async (bookingId, newStatus) => {
+    const fetchChange = await fetch(`${sumaryApi.changePayStatus.url.replace(':id', bookingId)}`, {
+      method: sumaryApi.changePayStatus.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+    setLoading(true);
+    const data = await fetchChange.json()
+    if (data.success) {
+      toast.success(data.message)
+      setBookings(prev => prev.map(booking =>
+        booking._id === bookingId ? { ...booking, payStatus: newStatus } : booking
+      ));
+    }
+    else {
+      toast.error(data.message)
+    }
+    setLoading(false);
+  }
   if (loading) {
     return (
       <div className="booking-management loading">
@@ -226,9 +249,9 @@ const BookingManagement = () => {
                 </td>
                 <td className="tour-info">
                   <div className="tour-title">{booking?.tour?.title}</div>
-                  <div className="travel-date">Ngày đi: {new Date(booking.bookingDate).toLocaleDateString()}</div>
+                  <div className="travel-date">Ngày đi: {new Date(booking.bookingDate).toLocaleDateString("vi-VN")}</div>
                 </td>
-                <td>{new Date(booking.createdAt).toLocaleDateString()}</td>
+                <td>{new Date(booking.createdAt).toLocaleDateString("vi-VN")}</td>
                 <td className="text-center">{booking.bookingSlots}</td>
                 <td className="text-right">{formatPrice(booking.totalPrice)}</td>
                 <td>{getStatusBadge(booking.bookingStatus)}</td>
@@ -245,19 +268,19 @@ const BookingManagement = () => {
                       <>
                         <button
                           className="btn-confirm"
-                          onClick={() => handleStatusChange(booking.id, 'confirmed')}
+                          onClick={() => handleStatusChange(booking._id, 'confirmed')}
                         >
                           Xác nhận
                         </button>
                         <button
                           className="btn-cancel"
-                          onClick={() => handleStatusChange(booking.id, 'cancelled')}
+                          onClick={() => handleStatusChange(booking._id, 'cancelled')}
                         >
                           Hủy
                         </button>
                       </>
                     )}
-                    {booking.bookingStatus === 'confirmed' && (
+                    {booking.bookingStatus === 'confirmed' && booking.payStatus === 'paid' && (
                       <button
                         className="btn-complete"
                         onClick={() => handleStatusChange(booking._id, 'completed')}
@@ -265,6 +288,16 @@ const BookingManagement = () => {
                         Hoàn thành
                       </button>
                     )}
+                    {
+                      booking.bookingStatus === "confirmed" && booking.payStatus === "pending" && (
+                        <button
+                          className="btn-confirmPayment"
+                          onClick={() => handlePayStatusChange(booking._id, 'paid')}
+                        >
+                          Xác nhận thanh toán
+                        </button>
+                      )
+                    }
                   </div>
                 </td>
               </tr>

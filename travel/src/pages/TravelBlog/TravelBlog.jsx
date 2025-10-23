@@ -1,67 +1,62 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './TravelBlog.scss';
+import uploadImage from '../../helper/uploadImage';
+import { toast } from 'react-toastify';
+import sumaryApi from '../../common';
+import { jwtDecode } from 'jwt-decode';
 
 const TravelBlog = () => {
   const [experiences, setExperiences] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [expandedComments, setExpandedComments] = useState({});
   const fileInputRef = useRef(null);
+  const token = localStorage.getItem('accessToken');
 
-  // Sample data
-  useEffect(() => {
-    const sampleData = [
-      {
-        id: 1,
-        user: 'Nguyễn Văn A',
-        avatar: '👤',
-        title: 'Trải nghiệm tuyệt vời tại Đà Lạt',
-        content: 'Tour Đà Lạt 3 ngày 2 đêm thật sự rất đáng giá. Cảnh đẹp, hướng dẫn viên nhiệt tình, dịch vụ chuyên nghiệp. Tôi sẽ quay lại!',
-        images: [
-          " https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp",
-          "https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp",
-          "https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp",
-          "https://res.cloudinary.com/djijqsmz8/image/upload/v1759331480/w4xykxacef9qw9hfosxl.webp"
-        ],
-        likes: 24,
-        comments: 5,
-        date: '2024-01-15',
-        liked: false,
-        commentList: []
-      },
-      {
-        id: 2,
-        user: 'Trần Thị B',
-        avatar: '👩',
-        title: 'Hạ Long - Kỳ quan thiên nhiên',
-        content: 'Vịnh Hạ Long đẹp không thể tả bằng lời. Du thuyền sang trọng, ẩm thực đặc sắc. Highly recommended!',
-        images: [
-          'https://via.placeholder.com/400x300/F5A623/FFFFFF?text=Hạ+Long+1',
-          'https://via.placeholder.com/400x300/BD10E0/FFFFFF?text=Hạ+Long+2'
-        ],
-        likes: 42,
-        comments: 8,
-        date: '2024-01-12',
-        liked: true,
-        commentList: []
+  const fetchPosts = async () => {
+    try {
+      const response = await fetch(sumaryApi.getAllPosts.url, {
+        method: sumaryApi.getAllPosts.method,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        const formattedPosts = data.data.map(post => ({
+          ...post,
+          // Format the post data as needed
+        }));
+        setExperiences(formattedPosts);
       }
-    ];
-    setExperiences(sampleData);
-  }, []);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+    const interval = setInterval(fetchPosts, 5000);
+
+    return () => clearInterval(interval);
+  }, [token]);
 
   // Modal functions
-  const handleFileSelect = (files) => {
-    const newImages = Array.from(files).map(file => ({
-      file,
-      url: URL.createObjectURL(file),
-      name: file.name
-    }));
-    setImages(prev => [...prev, ...newImages]);
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files);
+    try {
+      const results = await Promise.all(files.map((file) => uploadImage(file)));
+      const images = results.map((r) => ({
+        url: r.secure_url,
+        public_id: r.public_id,
+      }));
+      setImages((prev) => [...prev, ...images]);
+    } catch (err) {
+      console.error("Upload thất bại:", err);
+    }
   };
 
   const handleDrop = (e) => {
@@ -71,47 +66,82 @@ const TravelBlog = () => {
     handleFileSelect(files);
   };
 
-  const removeImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const removeImage = async (index, e) => {
+    console.log("remove imagesssssssssssssss");
+    e.stopPropagation();
+    e.preventDefault();
+    const image = images[index];
+    try {
+      await fetch(sumaryApi.deleteImage.url, {
+        method: sumaryApi.deleteImage.method,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: JSON.stringify({ public_id: image.public_id }),
+      });
+
+      setImages(images.filter((_, i) => i !== index));
+    } catch (err) {
+      console.error("Xoá ảnh thất bại:", err);
+    }
   };
 
-  const handleCreateExperience = (e) => {
+  const handleCreateExperience = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      alert('Vui lòng nhập tiêu đề và nội dung');
-      return;
-    }
-
     const newExperience = {
-      id: Date.now(),
-      user: 'Khách hàng',
-      avatar: '👤',
       title,
       content,
-      images: images.map(img => img.url),
-      likes: 0,
-      comments: 0,
-      date: new Date().toISOString().split('T')[0],
-      liked: false,
-      commentList: []
-    };
+      images
 
-    setExperiences([newExperience, ...experiences]);
-    setTitle('');
-    setContent('');
-    setImages([]);
-    setIsModalOpen(false);
+    };
+    const fetchPost = await fetch(sumaryApi.postShare.url, {
+      method: sumaryApi.postShare.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(newExperience)
+    });
+    const data = await fetchPost.json();
+    if (data.success) {
+      toast.success('Đăng bài thành công!');
+      setExperiences([newExperience, ...experiences]);
+      setTitle('');
+      setContent('');
+      setImages([]);
+      setIsModalOpen(false);
+    }
+    else {
+      toast.error(data.message || 'Đăng bài thất bại!');
+    }
   };
 
   // Experience functions
-  const handleLike = (id) => {
+  const handleLike = async (id) => {
+    if (!token) {
+      toast.error('Vui lòng đăng nhập để thích bài viết');
+      return;
+    }
+    const fetchRes = await fetch(sumaryApi.likePost.url.replace(':id', id), {
+      method: sumaryApi.likePost.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await fetchRes.json();
+    if (!data.success) {
+      throw new Error(data.message);
+    }
     setExperiences(experiences.map(exp =>
-      exp.id === id ? {
+      exp._id === id ? {
         ...exp,
-        likes: exp.liked ? exp.likes - 1 : exp.likes + 1,
-        liked: !exp.liked
+        liked: !exp.liked,
+        likes: exp.liked ? exp.likes.filter(likeId => likeId !== 'currentUserId') : [...exp.likes, 'currentUserId']
       } : exp
     ));
+
   };
   const toggleComments = (expId) => {
     setExpandedComments(prev => ({
@@ -119,131 +149,156 @@ const TravelBlog = () => {
       [expId]: !prev[expId]
     }));
   };
-  const handleDeleteImage = (expId, imageIndex) => {
-    setExperiences(experiences.map(exp =>
-      exp.id === expId ? {
-        ...exp,
-        images: exp.images.filter((_, index) => index !== imageIndex)
-      } : exp
-    ));
-  };
-
-  const handleEditImage = (expId, imageIndex, editedImage) => {
-    setExperiences(experiences.map(exp =>
-      exp.id === expId ? {
-        ...exp,
-        images: exp.images.map((img, index) =>
-          index === imageIndex ? editedImage : img
-        )
-      } : exp
-    ));
-    setSelectedImage(null);
-    setIsEditing(false);
-  };
-
-  const handleDeleteExperience = (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa bài viết này?')) {
-      setExperiences(experiences.filter(exp => exp.id !== id));
+  const handleDeleteExperience = async (id) => {
+    const experience = experiences.find(exp => exp._id === id);
+    if (experience.images && experience.images.length > 0) {
+      for (const img of experience.images) {
+        await fetch(sumaryApi.deleteImage.url, {
+          method: sumaryApi.deleteImage.method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+          body: JSON.stringify({ public_id: img.public_id }),
+        });
+      }
+    }
+    const fetchRes = await fetch(sumaryApi.deletePost.url.replace(':id', id), {
+      method: sumaryApi.deletePost.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const data = await fetchRes.json();
+    if (data.success) {
+      setExperiences(experiences.filter(exp => exp._id !== id));
+    } else {
+      console.error(data.message || 'Xóa bài viết thất bại!');
     }
   };
+const addComment = async (expId, commentText) => {
+  if (!commentText.trim()) return;
 
-  const addComment = (expId, commentText) => {
-    if (!commentText.trim()) return;
-
-    setExperiences(experiences.map(exp =>
-      exp.id === expId ? {
-        ...exp,
-        comments: exp.comments + 1,
-        commentList: [...exp.commentList, {
-          id: Date.now(),
-          user: 'Người dùng',
-          avatar: '👤',
-          text: commentText,
-          date: new Date().toLocaleTimeString()
-        }]
-      } : exp
-    ));
+  // 1. Tạo comment tạm thời
+  const tempComment = {
+    _id: `temp-${Date.now()}`,
+    user: {
+      _id: jwtDecode(token).id,
+      username: jwtDecode(token).username || 'Bạn'
+    },
+    content: commentText,
+    createdAt: new Date().toISOString()
   };
 
-  // Image Editor Component
-  const ImageEditor = ({ image, onClose, onSave }) => {
-    const [editedImage, setEditedImage] = useState(image);
-    const [brightness, setBrightness] = useState(100);
-    const [contrast, setContrast] = useState(100);
-    const [saturation, setSaturation] = useState(100);
+  // 2. Optimistic update - thêm comment ngay lập tức
+  setExperiences(prevExperiences => 
+    prevExperiences.map(exp => 
+      exp._id === expId 
+        ? { ...exp, comments: [...exp.comments, tempComment] }
+        : exp
+    )
+  );
 
-    const applyFilters = () => {
-      return {
-        filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`
-      };
-    };
+  try {
+    // 3. Gọi API
+    const fetchRes = await fetch(sumaryApi.postComment.url.replace(':id', expId), {
+      method: sumaryApi.postComment.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ content: commentText })
+    });
 
-    const handleSave = () => {
-      onSave(editedImage);
-    };
+    const data = await fetchRes.json();
 
-    return (
-      <div className="image-editor-overlay" onClick={onClose}>
-        <div className="image-editor-modal" onClick={e => e.stopPropagation()}>
-          <div className="editor-header">
-            <h3>Chỉnh Sửa Ảnh</h3>
-            <button className="close-btn" onClick={onClose}>✕</button>
-          </div>
-
-          <div className="editor-content">
-            <div className="image-preview">
-              <img
-                src={image}
-                alt="Editing"
-                style={applyFilters()}
-              />
-            </div>
-
-            <div className="editor-controls">
-              <div className="control-group">
-                <label>Độ sáng: {brightness}%</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="200"
-                  value={brightness}
-                  onChange={(e) => setBrightness(e.target.value)}
-                />
-              </div>
-
-              <div className="control-group">
-                <label>Độ tương phản: {contrast}%</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="200"
-                  value={contrast}
-                  onChange={(e) => setContrast(e.target.value)}
-                />
-              </div>
-
-              <div className="control-group">
-                <label>Độ bão hòa: {saturation}%</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="200"
-                  value={saturation}
-                  onChange={(e) => setSaturation(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="editor-actions">
-            <button className="cancel-btn" onClick={onClose}>Hủy</button>
-            <button className="save-btn" onClick={handleSave}>Lưu Thay Đổi</button>
-          </div>
-        </div>
-      </div>
+    if (data.success) {
+      // 4. Thay thế comment tạm bằng comment thật từ server
+      const newComment = data.data.comments[data.data.comments.length - 1];
+      
+      setExperiences(prevExperiences => 
+        prevExperiences.map(exp => 
+          exp._id === expId 
+            ? {
+                ...exp,
+                comments: exp.comments.map(comment => 
+                  comment._id === tempComment._id ? newComment : comment
+                )
+              }
+            : exp
+        )
+      );
+      
+    } else {
+      // 5. Rollback nếu API fail
+      setExperiences(prevExperiences => 
+        prevExperiences.map(exp => 
+          exp._id === expId 
+            ? { ...exp, comments: exp.comments.filter(c => c._id !== tempComment._id) }
+            : exp
+        )
+      );
+      toast.error(data.message || 'Thêm bình luận thất bại!');
+    }
+  } catch (error) {
+    // 6. Rollback nếu có lỗi network
+    setExperiences(prevExperiences => 
+      prevExperiences.map(exp => 
+        exp._id === expId 
+          ? { ...exp, comments: exp.comments.filter(c => c._id !== tempComment._id) }
+          : exp
+      )
     );
-  };
+    console.error("Error adding comment:", error);
+    toast.error("Lỗi kết nối khi thêm bình luận!");
+  }
+};
+  const handleDeleteComment = async (experienceId, commentId) => {
+    try {
+      const fetchRes = await fetch(
+        sumaryApi.deleteComment.url
+          .replace(':id', experienceId)
+          .replace(':commentId', commentId),
+        {
+          method: sumaryApi.deleteComment.method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
 
+      const data = await fetchRes.json();
+
+      if (data.success) {
+        // Cập nhật state trực tiếp - KHÔNG cần fetch lại
+        setExperiences(experiences.map(exp => {
+          if (exp._id === experienceId) {
+            const updatedComments = exp.comments.filter(comment =>
+              comment._id !== commentId
+            );
+
+            return {
+              ...exp,
+              comments: updatedComments,
+              // Giảm số lượng comments count nếu có
+              ...(exp.commentsCount && {
+                commentsCount: exp.commentsCount - 1
+              })
+            };
+          }
+          return exp;
+        }));
+
+      } else {
+        toast.error(data.message || 'Xóa bình luận thất bại!');
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast.error('Lỗi khi xóa bình luận!');
+    }
+  };
   return (
     <div className="experience-page">
       {/* Header */}
@@ -255,7 +310,7 @@ const TravelBlog = () => {
           </p>
           <button
             className="create-post-btn"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => { token ? setIsModalOpen(true) : toast.error('Vui lòng đăng nhập để đăng bài'); }}
           >
             <span className="btn-icon">✍️</span>
             <span className="btn-text">Đăng Bài Mới</span>
@@ -267,23 +322,26 @@ const TravelBlog = () => {
       <div className="container">
         <div className="experiences-grid">
           {experiences.map((experience) => (
-            <div key={experience.id} className="experience-card">
+            <div key={experience._id} className="experience-card">
               {/* Card Header */}
               <div className="card-header">
                 <div className="user-info">
-                  <span className="user-avatar">{experience.avatar}</span>
+                  <span className="user-avatar">{experience.author?.username.charAt(0)}</span>
                   <div className="user-details">
-                    <h3 className="user-name">{experience.user}</h3>
-                    <span className="post-date">{experience.date}</span>
+                    <h3 className="user-name">{experience.author?.username}</h3>
+                    <span className="post-date">{new Date(experience.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDeleteExperience(experience.id)}
-                  title="Xóa bài viết"
-                >
-                  🗑️
-                </button>
+                {
+                  token && experience.author?._id === jwtDecode(token).id &&
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleDeleteExperience(experience._id)}
+                    title="Xóa bài viết"
+                  >
+                    🗑️
+                  </button>
+                }
               </div>
 
               {/* Card Content */}
@@ -292,30 +350,11 @@ const TravelBlog = () => {
                 <p className="experience-content">{experience.content}</p>
 
                 {/* Image Gallery */}
-                {experience.images && experience.images.length > 0 && (
+                {experience.images && experience?.images.length > 0 && (
                   <div className="image-gallery">
                     {experience.images.map((image, index) => (
                       <div key={index} className="image-item">
-                        <img src={image} alt={`Experience ${index + 1}`} />
-                        <div className="image-actions">
-                          <button
-                            className="edit-image-btn"
-                            onClick={() => {
-                              setSelectedImage(image);
-                              setIsEditing(true);
-                            }}
-                            title="Chỉnh sửa ảnh"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            className="delete-image-btn"
-                            onClick={() => handleDeleteImage(experience.id, index)}
-                            title="Xóa ảnh"
-                          >
-                            🗑️
-                          </button>
-                        </div>
+                        <img src={image.url} alt={`Experience ${index + 1}`} />
                       </div>
                     ))}
                   </div>
@@ -327,51 +366,71 @@ const TravelBlog = () => {
                 <div className="engagement-stats">
                   <button
                     className={`like-btn ${experience.liked ? 'liked' : ''}`}
-                    onClick={() => handleLike(experience.id)}
+                    onClick={() => handleLike(experience._id)}
                   >
                     <span className="like-icon">❤️</span>
-                    <span className="like-count">{experience.likes}</span>
+                    <span className="like-count">{experience?.likes?.length}</span>
                   </button>
                   <button className="comment-btn">
                     <span className="comment-icon">💬</span>
-                    <span className="comment-count">{experience.comments}</span>
+                    <span className="comment-count">{experience?.comments?.length}</span>
                   </button>
                 </div>
-
-                <button className="share-btn">
-                  <span className="share-icon">📤</span>
-                  Chia sẻ
-                </button>
               </div>
-
-              // Trong component Experience Card, sửa phần Comments Section:
               <div className="comments-section">
                 {/* Hiển thị bình luận với toggle */}
                 <div className="comments-list">
-                  {experience.commentList && experience.commentList
-                    .slice(0, expandedComments[experience.id] ? experience.commentList.length : 5)
+                  {/* Kiểm tra comments tồn tại và là mảng */}
+                  {Array.isArray(experience.comments) && experience.comments
+                    .slice(0, expandedComments[experience._id] ? experience.comments.length : 5)
                     .map(comment => (
-                      <div key={comment.id} className="comment-item">
-                        <div className="comment-avatar">{comment.avatar}</div>
+                      <div key={comment._id || comment.id} className="comment-item">
+                        <div className="comment-avatar">
+                          {comment.user?.username?.charAt(0) || '👤'}
+                        </div>
                         <div className="comment-content">
                           <div className="comment-header">
-                            <span className="comment-user">{comment.user}</span>
-                            <span className="comment-time">{comment.date}</span>
+                            <span className="comment-user">
+                              {comment.user?.username || 'Người dùng'}
+                            </span>
+                            <span className="comment-time">
+                              {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('vi-VN') : 'Vừa xong'}
+                            </span>
+                            {/* Nút xoá comment - chỉ hiển thị cho chủ sở hữu hoặc admin */}
+                            {token && (comment.user?._id === jwtDecode(token)?.id || jwtDecode(token)?.role === 'admin') && (
+                              <button
+                                className="delete-comment-btn"
+                                onClick={() => handleDeleteComment(experience._id, comment._id)}
+                                title="Xóa bình luận"
+                              >
+                                🗑️
+                              </button>
+                            )}
                           </div>
-                          <p className="comment-text">{comment.text}</p>
+                          <p className="comment-text">{comment.content}</p>
                         </div>
                       </div>
                     ))
                   }
 
                   {/* Toggle button để xem thêm/ẩn bớt bình luận */}
-                  {experience.commentList && experience.commentList.length > 5 && (
+                  {Array.isArray(experience.comments) && experience.comments.length > 5 && (
                     <button
                       className="toggle-comments-btn"
-                      onClick={() => toggleComments(experience.id)}
+                      onClick={() => toggleComments(experience._id)}
                     >
-                      {expandedComments[experience.id] ? 'Ẩn bớt' : `Xem thêm ${experience.commentList.length - 5} bình luận`}
+                      {expandedComments[experience._id]
+                        ? 'Ẩn bớt'
+                        : `Xem thêm ${experience.comments.length - 5} bình luận`
+                      }
                     </button>
+                  )}
+
+                  {/* Hiển thị khi không có comments */}
+                  {(!experience.comments || experience.comments.length === 0) && (
+                    <div className="no-comments">
+                      Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
+                    </div>
                   )}
                 </div>
 
@@ -383,7 +442,7 @@ const TravelBlog = () => {
                     className="comment-field"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
-                        addComment(experience.id, e.target.value);
+                        addComment(experience._id, e.target.value);
                         e.target.value = '';
                       }
                     }}
@@ -392,7 +451,7 @@ const TravelBlog = () => {
                     className="post-comment-btn"
                     onClick={(e) => {
                       const input = e.target.previousElementSibling;
-                      addComment(experience.id, input.value);
+                      addComment(experience._id, input.value);
                       input.value = '';
                     }}
                   >
@@ -458,7 +517,7 @@ const TravelBlog = () => {
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={(e) => handleFileSelect(e.target.files)}
+                    onChange={(e) => handleFileSelect(e)}
                     style={{ display: 'none' }}
                   />
                 </div>
@@ -471,7 +530,7 @@ const TravelBlog = () => {
                         <img src={image.url} alt={`Preview ${index + 1}`} />
                         <button
                           className="remove-image-btn"
-                          onClick={() => removeImage(index)}
+                          onClick={(e) => removeImage(index, e)}
                         >
                           ✕
                         </button>
@@ -496,23 +555,6 @@ const TravelBlog = () => {
             </form>
           </div>
         </div>
-      )}
-
-      {/* Image Editor Modal */}
-      {isEditing && selectedImage && (
-        <ImageEditor
-          image={selectedImage}
-          onClose={() => {
-            setIsEditing(false);
-            setSelectedImage(null);
-          }}
-          onSave={(editedImage) => {
-            // In a real app, you would update the image URL
-            // For demo, we'll just use the same image
-            setIsEditing(false);
-            setSelectedImage(null);
-          }}
-        />
       )}
     </div>
   );

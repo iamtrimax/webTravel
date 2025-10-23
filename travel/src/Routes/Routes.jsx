@@ -13,6 +13,7 @@ import AdminRoute from './AdminRoute'
 import TravelBlog from '../pages/TravelBlog/TravelBlog'
 import Contact from '../pages/Contact/Contact'
 import TourDetail from '../pages/TourDetail/TourDetail'
+import PaymentSuccess from '../pages/PaymentSuccess/PaymentSuccess'
 
 const Routes = createBrowserRouter([
   {
@@ -62,6 +63,10 @@ const Routes = createBrowserRouter([
       {
         path:"detail/:id",
         element:<TourDetail/>
+      },
+      {
+        path:"payment/success",
+        element:<PaymentSuccess/>
       }
     ]
   }

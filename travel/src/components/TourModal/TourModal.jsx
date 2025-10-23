@@ -51,7 +51,7 @@ const TourModal = ({
         method: sumaryApi.deleteImage.method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify({ public_id: image.public_id }),
       });

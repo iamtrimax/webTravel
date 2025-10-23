@@ -53,6 +53,13 @@ const booking = new mongoose.Schema(
     specialRequire: {
       type: String,
     },
+    cancelDate: {
+      type: Date,
+    },
+    cancelReason: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

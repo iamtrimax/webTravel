@@ -42,7 +42,7 @@ const UserCard = ({ user, onDelete, onUpdateRole, onToggleLock, getRoleColor, ge
         </div>
         <div className="detail-item">
           <span className="label">Ngày tạo:</span>
-          <span>{new Date(user.createdAt).toISOString().split('T')[0]}</span>
+          <span>{new Date(user.createdAt).toLocaleDateString("vi-VN")}</span>
         </div>
       </div>
 
@@ -51,8 +51,8 @@ const UserCard = ({ user, onDelete, onUpdateRole, onToggleLock, getRoleColor, ge
           <button 
             className="action-btn update-role"
             onClick={() => {
-              const newRole = prompt('Nhập role mới (admin/moderator/user):', user.role);
-              if (newRole && ['admin', 'moderator', 'user'].includes(newRole)) {
+              const newRole = prompt('Nhập role mới (admin/user):', user.role);
+              if (newRole && ['admin', 'user'].includes(newRole)) {
                 onUpdateRole(user._id, newRole);
               }
             }}

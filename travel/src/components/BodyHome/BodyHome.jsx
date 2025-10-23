@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Homebody.scss';
+import formatPrice from '../../helper/formatPrice';
 const HomeBody = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [visibleTours, setVisibleTours] = useState(6);
@@ -144,12 +145,6 @@ const HomeBody = () => {
     }, 800);
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
-  };
 
   return (
     <main className="home-body">

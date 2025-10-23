@@ -41,11 +41,11 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
                 </div>
                 <div className="detail-item">
                   <label>Ngày đặt:</label>
-                  <span>{new Date(booking.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(booking.createdAt).toLocaleDateString('vi-VN')}</span>
                 </div>
                 <div className="detail-item">
                   <label>Ngày đi:</label>
-                  <span>{new Date(booking.bookingDate).toLocaleDateString()}</span>
+                  <span>{new Date(booking.bookingDate).toLocaleDateString('vi-VN')}</span>
                 </div>
                 <div className="detail-item">
                   <label>Số người:</label>
@@ -82,6 +82,25 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
                 </div>
               </div>
             </div>
+
+            {booking.cancelReason && booking.bookingStatus === "cancelled" &&
+              (<div className="detail-section">
+                <h4>Lý do huỷ vé</h4>
+                <div className="detail-grid ">
+                  <div className="detail-item">
+                    <span className={`text-red-800 font-bold text-xl`}>
+                      {booking.cancelReason}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>ngày huỷ vé: </label>
+                    <span className={`text-red-800 font-bold text-2xl`}>
+                      {new Date(booking.cancelDate).toLocaleDateString("vi-VN")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              )}
 
             {booking.specialRequire && (
               <div className="detail-section">

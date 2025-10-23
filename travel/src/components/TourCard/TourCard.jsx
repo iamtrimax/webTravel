@@ -7,7 +7,7 @@ const TourCard = ({ tour, onEdit, onDelete, onToggleStatus, getCategoryColor, ge
   const formatDateUTC = (date) => {
     if (!date) return "-";
     try {
-      return new Date(date).toISOString().split("T")[0];
+      return new Date(date).toLocaleDateString("vi-VN");
     } catch {
       return "-";
     }
@@ -79,13 +79,16 @@ const TourCard = ({ tour, onEdit, onDelete, onToggleStatus, getCategoryColor, ge
             </div>
 
             <div className="detail-item">
-              <span className="original-price">{price.toLocaleString()} VND</span>
               {discountPrice > 0 && (
-                <span className="discount-price">
-                  {discountPrice.toLocaleString()} VND
-                  <span className="discount-percent">({parseInt(discountPercentage).toFixed(0)}%)</span>
-                </span>
+                <>
+                  <span className="original-price">{price.toLocaleString()} VND</span>
+                  <span className="discount-price">
+                    {discountPrice.toLocaleString()} VND
+                    <span className="discount-percent">({parseInt(discountPercentage).toFixed(0)}%)</span>
+                  </span>
+                </>
               )}
+              {discountPrice === 0 && <span className="price">{price.toLocaleString()} VND</span>}
             </div>
 
             <div className="detail-item">

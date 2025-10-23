@@ -5,6 +5,11 @@ import './MyTicketsModal.scss';
 import sumaryApi from '../../common';
 import { toast } from 'react-toastify';
 import socket from '../../Socket/Socket';
+import formatPrice from '../../helper/formatPrice';
+import TicketStats from '../../components/TicketStats/TicketStats';
+import SidebarMytickets from '../../components/SidebarMyTickets/SidebarMytickets';
+import TicketList from '../../components/TicketList/TicketList';
+import CancelTicketModal from '../../components/CancelTicketModal/CancelTicketModal';
 
 const MyTicketsModal = () => {
   const [activeTab, setActiveTab] = useState('pending');
@@ -126,12 +131,7 @@ const MyTicketsModal = () => {
   };
 
   // Format functions
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price || 0);
-  };
+
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Đang cập nhật';
@@ -390,108 +390,18 @@ const MyTicketsModal = () => {
       </section>
 
       {/* User Stats - SỬ DỤNG DỮ LIỆU THỰC TẾ */}
-      <section className="user-stats">
-        <div className="container">
-          <div className="stats-grid">
-            <div className="stat-card" onClick={() => setActiveTab('pending')}>
-              <div className="stat-icon pending">
-                <i className="fas fa-clock"></i>
-              </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookingStats.pending}</span>
-                <span className="stat-label">Chờ xác nhận</span>
-              </div>
-            </div>
-            <div className="stat-card" onClick={() => setActiveTab('upcoming')}>
-              <div className="stat-icon upcoming">
-                <i className="fas fa-plane-departure"></i>
-              </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookingStats.confirmed}</span>
-                <span className="stat-label">Sắp tới</span>
-              </div>
-            </div>
-            <div className="stat-card" onClick={() => setActiveTab('completed')}>
-              <div className="stat-icon completed">
-                <i className="fas fa-check-circle"></i>
-              </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookingStats.completed}</span>
-                <span className="stat-label">Đã hoàn thành</span>
-              </div>
-            </div>
-            <div className="stat-card" onClick={() => setActiveTab('cancelled')}>
-              <div className="stat-icon cancelled">
-                <i className="fas fa-times-circle"></i>
-              </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookingStats.cancelled}</span>
-                <span className="stat-label">Đã hủy</span>
-              </div>
-            </div>
-            <div className="stat-card total" onClick={() => setActiveTab("all")}>
-              <div className="stat-icon total">
-                <i className="fas fa-ticket-alt"></i>
-              </div>
-              <div className="stat-info">
-                <span className="stat-number">{bookingStats.totalBookings}</span>
-                <span className="stat-label">Tổng số vé</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <TicketStats bookingStats={bookingStats} setActiveTab={setActiveTab} />
 
       {/* Main Content */}
       <section className="tickets-content">
         <div className="container">
           <div className="content-wrapper">
             {/* Sidebar */}
-            <div className="sidebar">
-              <nav className="sidebar-nav">
-                <button
-                  className={`nav-item ${activeTab === 'pending' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('pending')}
-                >
-                  <i className="fas fa-clock"></i>
-                  <span>Chờ xác nhận</span>
-                  <span className="nav-badge">{bookingStats.pending}</span>
-                </button>
-                <button
-                  className={`nav-item ${activeTab === 'upcoming' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('upcoming')}
-                >
-                  <i className="fas fa-plane-departure"></i>
-                  <span>Tour sắp tới</span>
-                  <span className="nav-badge">{bookingStats.confirmed}</span>
-                </button>
-                <button
-                  className={`nav-item ${activeTab === 'completed' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('completed')}
-                >
-                  <i className="fas fa-check-circle"></i>
-                  <span>Tour đã hoàn thành</span>
-                  <span className="nav-badge">{bookingStats.completed}</span>
-                </button>
-                <button
-                  className={`nav-item ${activeTab === 'cancelled' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('cancelled')}
-                >
-                  <i className="fas fa-times-circle"></i>
-                  <span>Tour đã hủy</span>
-                  <span className="nav-badge">{bookingStats.cancelled}</span>
-                </button>
-              </nav>
-
-              <div className="sidebar-help">
-                <h4>📞 Cần hỗ trợ?</h4>
-                <p>Liên hệ với chúng tôi để được giải đáp thắc mắc</p>
-                <button className="support-btn" onClick={() => toast.info('Tính năng đang phát triển')}>
-                  <i className="fas fa-headset"></i>
-                  Liên hệ hỗ trợ
-                </button>
-              </div>
-            </div>
+            <SidebarMytickets 
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              bookingStats={bookingStats}
+            />
 
             {/* Main Content Area */}
             <div className="main-content">
@@ -519,209 +429,17 @@ const MyTicketsModal = () => {
               </div>
 
               {/* Tickets List */}
-              <div className="tickets-list">
-                {currentTickets.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-icon">
-                      <i className="fas fa-ticket-alt"></i>
-                    </div>
-                    <h3>Không tìm thấy vé nào</h3>
-                    <p>
-                      {activeTab === 'pending' ? 'Không có vé nào đang chờ xác nhận' :
-                        activeTab === 'upcoming' ? 'Bạn chưa có tour nào sắp tới' :
-                          activeTab === 'completed' ? 'Bạn chưa hoàn thành tour nào' :
-                            'Bạn chưa hủy tour nào'}
-                    </p>
-                    <Link to="/tours" className="explore-btn">
-                      <i className="fas fa-compass"></i>
-                      Khám phá tour ngay
-                    </Link>
-                  </div>
-                ) : (
-                  currentTickets.map((ticket) => (
-                    <div key={ticket._id} className="ticket-item">
-                      <div className="ticket-image">
-                        <img
-                          src={ticket.tour?.images?.[0].url || '/default-tour.jpg'}
-                          alt={ticket.tour?.title}
-                          onError={(e) => {
-                            e.target.src = '/default-tour.jpg';
-                          }}
-                        />
-                        <div className="image-overlay">
-                          <span className="tour-duration">{ticket.tour?.duration || '1 ngày'}</span>
-                          <span className="tour-price">{formatPrice(ticket.totalPrice)}</span>
-                        </div>
-                      </div>
-
-                      <div className="ticket-info">
-                        <div className="ticket-header">
-                          <div className="ticket-meta">
-                            <span className="ticket-id">#{ticket.idBooking}</span>
-                            {getStatusBadge(ticket.bookingStatus)}
-                          </div>
-                          <div className="ticket-actions">
-                            <button
-                              className="action-btn detail"
-                              onClick={() => setSelectedTicket(selectedTicket?._id === ticket._id ? null : ticket)}
-                            >
-                              <i className="fas fa-info-circle"></i>
-                              {selectedTicket?._id === ticket._id ? 'Thu gọn' : 'Chi tiết'}
-                            </button>
-
-                            {(ticket.bookingStatus === 'pending' || ticket.bookingStatus === 'confirmed') && (
-                              <button
-                                className="action-btn cancel"
-                                onClick={() => setCancelConfirm(ticket)}
-                              >
-                                <i className="fas fa-times"></i>
-                                Hủy vé
-                              </button>
-                            )}
-
-                            {ticket.bookingStatus === 'confirmed' && (
-                              <button
-                                className="action-btn print"
-                                onClick={() => handlePrintTicket(ticket)}
-                              >
-                                <i className="fas fa-print"></i>
-                                In vé
-                              </button>
-                            )}
-
-                            <button
-                              className="action-btn share"
-                              onClick={() => handleShareTicket(ticket)}
-                            >
-                              <i className="fas fa-share-alt"></i>
-                              Chia sẻ
-                            </button>
-                          </div>
-                        </div>
-
-                        <h3 className="tour-name">{ticket.tour?.title || 'Tour du lịch'}</h3>
-
-                        <div className="tour-details">
-                          <div className="detail-group">
-                            <span className="detail-label">
-                              <i className="fas fa-calendar-alt"></i>
-                              Ngày đi:
-                            </span>
-                            <span className="detail-value">{formatDate(ticket.bookingDate)}</span>
-                          </div>
-                          <div className="detail-group">
-                            <span className="detail-label">
-                              <i className="fas fa-clock"></i>
-                              Giờ khởi hành:
-                            </span>
-                            <span className="detail-value">7:30</span>
-                          </div>
-                          <div className="detail-group">
-                            <span className="detail-label">
-                              <i className="fas fa-users"></i>
-                              Số lượng:
-                            </span>
-                            <span className="detail-value">{ticket.bookingSlots} người</span>
-                          </div>
-                          <div className="detail-group">
-                            <span className="detail-label">
-                              <i className="fas fa-wallet"></i>
-                              Tổng tiền:
-                            </span>
-                            <span className="detail-value price">{formatPrice(ticket.totalPrice)}</span>
-                          </div>
-
-                          {ticket.bookingStatus === 'pending' && (
-                            <div className="detail-group">
-                              <span className="detail-label">
-                                <i className="fas fa-hourglass-half"></i>
-                                Ngày đặt:
-                              </span>
-                              <span className="detail-value confirmation-time">
-                                {formatDate(ticket.createdAt)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Expanded Details */}
-                        {selectedTicket?._id === ticket._id && (
-                          <div className="ticket-expanded">
-                            <div className="expanded-content">
-                              <div className="detail-section">
-                                <h4>📋 Thông tin chi tiết</h4>
-                                <div className="detail-grid">
-                                  <div className="detail-item">
-                                    <label>Mã đặt tour:</label>
-                                    <span>{ticket.idBooking}</span>
-                                  </div>
-                                  <div className="detail-item">
-                                    <label>Ngày đặt:</label>
-                                    <span>{formatDate(ticket.createdAt)}</span>
-                                  </div>
-                                  <div className="detail-item">
-                                    <label>Khách hàng:</label>
-                                    <span>{ticket.fullname}</span>
-                                  </div>
-                                  <div className="detail-item">
-                                    <label>Email:</label>
-                                    <span>{ticket.email}</span>
-                                  </div>
-                                  <div className="detail-item">
-                                    <label>Số điện thoại:</label>
-                                    <span>{ticket.phone}</span>
-                                  </div>
-                                  <div className="detail-item">
-                                    <label>Điểm tập trung:</label>
-                                    <span>{ticket.tour?.meetingPoint || 'Đang cập nhật'}</span>
-                                  </div>
-                                  <div className="detail-item full-width">
-                                    <label>Chính sách hủy:</label>
-                                    <span className="policy">
-                                      Hủy trước 7 ngày: hoàn 100% | Trước 3 ngày: hoàn 50% | Dưới 3 ngày: không hoàn
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {ticket.tour?.inclusions && ticket.tour.inclusions.length > 0 && (
-                                <div className="includes-section">
-                                  <h4>✅ Dịch vụ bao gồm</h4>
-                                  <div className="includes-list">
-                                    {ticket.tour.inclusions.map((item, index) => (
-                                      <span key={index} className="include-item">
-                                        <i className="fas fa-check"></i>
-                                        {item}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {ticket.specialRequire && (
-                                <div className="notes-section">
-                                  <h4>📝 Yêu cầu đặc biệt</h4>
-                                  <p>{ticket.specialRequire}</p>
-                                </div>
-                              )}
-
-                              {ticket.bookingStatus === 'cancelled' && ticket.payStatus === 'refunded' && (
-                                <div className="refund-section">
-                                  <h4>💳 Thông tin hoàn tiền</h4>
-                                  <div className="refund-info">
-                                    <p><strong>Trạng thái:</strong> Đã hoàn tiền</p>
-                                    <p><strong>Số tiền hoàn:</strong> {formatPrice(ticket.totalPrice)}</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <TicketList
+                currentTickets={currentTickets}
+                activeTab={activeTab}
+                setSelectedTicket={setSelectedTicket}
+                setCancelConfirm={setCancelConfirm}
+                handlePrintTicket={handlePrintTicket}
+                getStatusBadge={getStatusBadge}
+                selectedTicket={selectedTicket}
+                handleShareTicket={handleShareTicket}
+                formatDate={formatDate}
+              />
             </div>
           </div>
         </div>
@@ -729,49 +447,12 @@ const MyTicketsModal = () => {
 
       {/* Cancel Confirmation Modal */}
       {cancelConfirm && (
-        <div className="modal-overlay">
-          <div className="cancel-modal">
-            <div className="modal-header">
-              <h3>Xác nhận hủy vé</h3>
-              <button
-                className="close-btn"
-                onClick={() => setCancelConfirm(null)}
-                disabled={loading}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="modal-content">
-              <p>Bạn có chắc chắn muốn hủy vé <strong>#{cancelConfirm.idBooking}</strong>?</p>
-              <p className="tour-name">{cancelConfirm.tour?.title || 'Tour du lịch'}</p>
-              <div className="cancellation-policy">
-                <h4>Chính sách hủy vé:</h4>
-                <p>Hủy trước 7 ngày: hoàn 100% | Trước 3 ngày: hoàn 50% | Dưới 3 ngày: không hoàn</p>
-              </div>
-              {cancelConfirm.bookingStatus === 'pending' && (
-                <div className="pending-cancellation-info">
-                  <p><strong>Lưu ý:</strong> Vé đang chờ xác nhận, việc hủy vé sẽ được xử lý ngay lập tức.</p>
-                </div>
-              )}
-            </div>
-            <div className="modal-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => setCancelConfirm(null)}
-                disabled={loading}
-              >
-                Quay lại
-              </button>
-              <button
-                className="btn-confirm"
-                onClick={() => handleCancelTicket(cancelConfirm._id)}
-                disabled={loading}
-              >
-                {loading ? 'Đang xử lý...' : 'Xác nhận hủy'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <CancelTicketModal
+          cancelConfirm={cancelConfirm}
+          setCancelConfirm={setCancelConfirm}
+          loading={loading}
+          handleCancelTicket={handleCancelTicket}
+        />
       )}
     </div>
   );

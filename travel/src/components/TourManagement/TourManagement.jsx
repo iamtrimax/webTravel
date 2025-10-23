@@ -194,7 +194,7 @@ const TourManagement = () => {
       title: tour.title,
       description: tour.description,
       destination: tour.destination,
-      mettingPoint: tour.mettingPoint,
+      meetingPoint: tour.meetingPoint,
       duration: tour.duration,
       price: tour.price,
       discountPrice: tour.discountPrice,

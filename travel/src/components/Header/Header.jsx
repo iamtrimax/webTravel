@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Header.scss';
-import MyTicketsModal from '../../pages/MyTickets/MyTicketsModal';
+
 const Header = ({ onAuthClick, user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('/');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const allNavItems = [
     { label: 'Đặt Tour', path: '/booking' },
     { label: 'VÉ CỦA TÔI', path: '/my-ticket', requiresAuth: true },
@@ -14,11 +14,10 @@ const Header = ({ onAuthClick, user, onLogout }) => {
     { label: 'Liên hệ', path: '/contact-page' }
   ];
 
-  // Filter nav items dựa trên authentication
   const navItems = allNavItems.filter(item =>
     !item.requiresAuth || (item.requiresAuth && user)
   );
-  // Cập nhật activeTab khi location thay đổi
+
   useEffect(() => {
     const currentPath = location.pathname;
     if (currentPath === '/') {
@@ -33,7 +32,6 @@ const Header = ({ onAuthClick, user, onLogout }) => {
   }, [location, navItems]);
 
   return (
-
     <header className="cinene-header">
       <div className="header-top">
         <div className="container">
@@ -51,6 +49,7 @@ const Header = ({ onAuthClick, user, onLogout }) => {
           <div className="auth-buttons">
             {user ? (
               <div className="user-info">
+                {/* Notification Container với Tailwind CSS */}
                 <span className="user-name">👤 {user.username}</span>
                 <button className="logout-btn" onClick={onLogout}>
                   ĐĂNG XUẤT
