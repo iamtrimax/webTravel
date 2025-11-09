@@ -6,7 +6,8 @@ const { createTour, getAllTours, updateTour, deleteTour, toggleTourStatus, getTo
 const { adminLogin, getAllUsers, createUser, toggleBlockUser, updateRoleUser, deleteUser, deleteImage, getAllEmail, replyEmail } = require("../controller/admin.controller");
 const { createBooking, getAllBooking, changeStatusBooking, getBookingByAccount, cancelBooking, changePayStatus } = require("../controller/booking.controller");
 const { postShare, getAllPosts, likePost, deletePost, postComment, deleteComment } = require("../controller/post.controller");
-const { paymentPayOSWebhook, createPayOSLink } = require("../controller/payment.controller");
+const { AIChat } = require("../controller/AI.controller");
+const { createPayment, vnpayReturn, vnpayIpn } = require("../controller/payment.controller");
 const route = express.Router();
 
 //route user
@@ -51,8 +52,11 @@ route.put("/admin/change-pay-status/:id", verifyAccessToken, verifyAdmin, change
 //cloudinary
 route.delete("/admin/cloudinary/image", verifyAccessToken, verifyAdmin, deleteImage);
 
-//payOS
-route.post("/payments/payos-webhook",paymentPayOSWebhook);
-route.post("/payments/payos-createlink", verifyAccessToken, createPayOSLink);
+//vnpay
+route.get("/payment/vnpay_return", vnpayReturn);
+route.get("/payment/vnpay_ipn",vnpayIpn)
+route.post("/payment/create", verifyAccessToken, createPayment);
+//chatbot AI
+route.post("/chat", AIChat)
 
 module.exports = route;

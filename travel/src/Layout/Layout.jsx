@@ -5,6 +5,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { clearUser } from '../Store/userSlice';
 import Header from '../components/Header/Header';
 import Footer from '../components/Footer/Footer';
+import TravelChatbot from '../components/TravelChatBot/TravelChatBot'
 
 const Layout = () => {
     const user = useSelector((state) => state?.user?.user);
@@ -34,6 +35,11 @@ const Layout = () => {
             <main className='main'>
                 <Outlet />
             </main>
+            <div className="lg:col-span-3">
+                <div className="">
+                    <TravelChatbot />
+                </div>
+            </div>
             <Footer />
         </div>
     )

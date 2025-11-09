@@ -101,7 +101,18 @@ const BookingDetailModal = ({ booking, onClose, onStatusChange }) => {
                 </div>
               </div>
               )}
-
+              {booking.adminMessage &&
+              (<div className="detail-section">
+                <h4>ghi chú</h4>
+                <div className="detail-grid ">
+                  <div className="detail-item">
+                    <span className={`text-blue-400 font-bold`}>
+                      {booking.adminMessage}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              )}
             {booking.specialRequire && (
               <div className="detail-section">
                 <h4>Yêu cầu đặc biệt</h4>

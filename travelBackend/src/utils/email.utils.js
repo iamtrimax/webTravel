@@ -157,5 +157,26 @@ const mailPayConfirm = async (
   };
   await transporter.sendMail(mailOptions);
 };
+const mailUpdateStartDate = async (tour, booking) => {
+  const mailOptions = {
+    from: "ADMINTRAVEL", // Người gửi
+    to: booking.email, // Người nhận
+    subject: `📅 Thông báo thay đổi ngày khởi hành tour: ${tour.title}`,
+    html: `
+              <p>Xin chào <strong>${booking.fullname}</strong>,</p>
+              <p>Tour <b>${
+                tour.title
+              }</b> mà bạn đã đặt trước đó khởi hành vào ngày 
+              <b>${new Date(booking.bookingDate).toLocaleDateString(
+                "vi-VN"
+              )}</b> 
+              hiện đã được <span style="color: red;">thay đổi lịch khởi hành</span>.</p>
+              <p>Vui lòng truy cập tài khoản hoặc liên hệ với chúng tôi để xác nhận lịch mới
+              hoặc yêu cầu hoàn tiền nếu bạn không thể tham gia.</p>
+              <p>Trân trọng,<br/>Đội ngũ Travel</p>
+            `,
+  };
+    await transporter.sendMail(mailOptions);
+};
 
-module.exports = { adminReplyEmail, mailAutoCancelBooking, mailPayConfirm };
+module.exports = { adminReplyEmail, mailAutoCancelBooking, mailPayConfirm, mailUpdateStartDate };

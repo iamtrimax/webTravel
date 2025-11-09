@@ -49,7 +49,7 @@ const createBooking = asyncHandler(async (req, res) => {
     address,
     specialRequire,
     tour,
-    payStatus = "pending"
+    payStatus = "pending",
   );
   return res.status(201).json({
     success: true,
@@ -63,7 +63,6 @@ const getAllBooking = asyncHandler(async (req, res) => {
     .find()
     .populate("tour", "title")
     .sort({ createdAt: -1 })
-    .lean();
   return res.status(200).json({
     data: booking,
     success: true,
@@ -133,9 +132,14 @@ const changePayStatus = asyncHandler(async (req, res) => {
 const autoCancelBooking = asyncHandler(async () => {
   const now = new Date();
 
+  // chỉ lấy những tour sắp hết hạn thanh toán
+  const sevenDaysAgo = new Date(now)
+  sevenDaysAgo.setDate(now.getDate() - 7)
+  sevenDaysAgo.setHours(0, 0, 0, 0)
   const pendingPayStatus = await bookingModel.find({
     payStatus: "pending",
     bookingStatus: { $ne: "cancelled" },
+    bookingDate: {$lte: sevenDaysAgo}
   });
   if(pendingPayStatus.length ===0){
     return;
@@ -144,11 +148,10 @@ const autoCancelBooking = asyncHandler(async () => {
     // booking.bookingDate đã là Date → clone ra để không bị mutate
     const bookingDate = new Date(booking.bookingDate);
 
-    // Gán giờ khởi hành 7:30 sáng theo giờ Việt Nam
-    bookingDate.setHours(7, 30, 0, 0);
-
-    // Giờ giới hạn thanh toán: trước 1 tiếng
-    const deadline = new Date(bookingDate.getTime() - 60 * 60 * 1000);
+    //không thanh toán trước 7 ngày huỷ
+    const deadline = new Date(bookingDate);
+    deadline.setDate(bookingDate.getDate() - 7)
+    deadline.setHours(23, 59, 59, 999)
 
     if (now > deadline) {
       await autoCancelBookingService(booking);

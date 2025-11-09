@@ -1,22 +1,27 @@
 const asyncHandler = require("../middleware/asyncHandler");
-const { PayOS } = require("@payos/node");
 const Tour = require("../models/tour.model");
 const crypto = require("crypto");
 const { handlebooking } = require("../Services/userService");
 const nodeCache = require("node-cache");
-const { data } = require("react-router-dom");
 require("dotenv").config();
-
-const payos = new PayOS(
-  process.env.PAYOS_CLIENT_ID,
-  process.env.PAYOS_API_KEY,
-  process.env.PAYOS_CHECKSUM_KEY
-);
+const { vnpay, dateFormat } = require("../utils/VNPay");
 
 const bookingCache = new nodeCache({ stdTTL: 600 });
-const webhookProcessed = new Set()
-const createPayOSLink = asyncHandler(async (req, res) => {
+const createPayment = asyncHandler(async (req, res) => {
   const email = req.user.email;
+  // 🟢 Lấy IP thật (quan trọng!)
+  let clientIp =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    "127.0.0.1";
+
+  // Nếu là IPv6 (::1) thì chuyển về 127.0.0.1
+  if (clientIp === "::1" || clientIp === "::ffff:127.0.0.1") {
+    clientIp = "127.0.0.1";
+  }
+
+  console.log("💡 Client IP:", clientIp);
   const {
     bookingSlots,
     bookingDate,
@@ -26,8 +31,7 @@ const createPayOSLink = asyncHandler(async (req, res) => {
     specialRequire,
     tourId,
   } = req.body;
-  console.log('slotttttt',bookingSlots);
-  
+
   const tour = await Tour.findById(tourId);
   if (!tour) {
     res.status(404);
@@ -40,33 +44,27 @@ const createPayOSLink = asyncHandler(async (req, res) => {
   const idBooking = `bk${crypto
     .randomBytes(2)
     .toString("hex")
-    .substring(0, 3)}`; // orderCode PayOS bắt buộc là số
-  const orderCode = Math.floor(100000 + Math.random() * 900000);
-
+    .substring(0, 3)}`;
   const totalPrice =
     tour.discountPrice * bookingSlots || tour.price * bookingSlots;
+  // Thử in ra globalConfig để kiểm tra Secret Key
+  console.log("Global Config:", vnpay.globalConfig);
 
-  const body = {
-    orderCode,
-    amount: totalPrice,
-    description: `${idBooking}`,
-    returnUrl: `${process.env.FRONTEND_URL}/booking`,
-    cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
-    items: [
-      {
-        name: tour.title,
-        quantity: bookingSlots,
-        price: totalPrice,
-      },
-    ],
-    expired_at: new Date(Date.now() + 10 * 60 * 1000),
-  };
-
-  const paymentLink = await payos.paymentRequests.create(body);
-  console.log(paymentLink);
-
-  // Lưu booking vào DB
-  bookingCache.set(orderCode.toString(), {
+  const paymentUrl = vnpay.buildPaymentUrl({
+    vnp_Version: "2.1.0",
+    vnp_Amount: totalPrice,
+    vnp_TxnRef: idBooking,
+    vnp_OrderInfo: `Thanh toan don hang #${idBooking}`,
+    vnp_ReturnUrl: process.env.VNP_RETURNURL,
+    vnp_BankCode: "NCB",
+    vnp_CreateDate: dateFormat(new Date()),
+    vnp_ExpireDate: dateFormat(new Date(Date.now() + 10 * 60 * 1000)),
+    vnp_IpAddr: clientIp,
+  });
+  console.log("✅ Generated URL:", paymentUrl);
+  console.log("🔑 Secret Key:", process.env.VNP_HASHSECRET);
+  // Lưu booking vào cache
+  bookingCache.set(idBooking, {
     idBooking,
     bookingSlots,
     bookingDate,
@@ -81,77 +79,85 @@ const createPayOSLink = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    data: paymentLink.checkoutUrl,
-    bookingData: bookingCache.get(orderCode.toString()) 
+    data: paymentUrl,
+    bookingData: bookingCache.get(idBooking.toString()),
   });
 });
 
-const paymentPayOSWebhook = asyncHandler(async (req, res) => {
-  console.log("🔔 WEBHOOK NHẬN ĐƯỢC");
-  console.log("Body:", JSON.stringify(req.body, null, 2));
+const vnpayReturn = async (req, res) => {
+  const verify = vnpay.verifyReturnUrl(req.query);
 
-  // 1. KIỂM TRA CÓ PHẢI WEBHOOK TEST KHÔNG
-  const { data, code, desc } = req.body;
+  console.log("verify.....", verify);
+  
 
-  // PayOS test webhook có orderCode = 123 và description = "VQRIO123"
-  if (data && data.orderCode === 123 && data.description === "VQRIO123") {
-    return res.status(200).json({
-      success: true,
-      message: "Webhook test thành công",
-      test: true,
-    });
+  if (!verify.isVerified) {
+    return res.redirect("http://localhost:5173/booking?status=invalid");
   }
 
-  // 2. XỬ LÝ WEBHOOK THẬT
-  if (!data) throw new Error("thiếu dữ liệu");
-
-  const { orderCode } = data;
-  const paymentStatus = data.desc; // "Thành công" hoặc thông báo khác
-  const webhookSignature = req.headers["x-payos-signature"];
-  const webhookId = `${orderCode}_${webhookSignature}`;
-
-  if (webhookProcessed.has(webhookId)) {
-    return res.status(200).json({
-      success: true,
-      message: "Webhook đã được xử lý",
-    });
-  }
-
-  if (paymentStatus === "success") {
-    const bookingData = bookingCache.get(orderCode.toString());
-    if (!bookingData) {
-      throw new Error("không tìm thấy hoá đơn thanh toans");
-    }
-    console.log("bookingSlot,......", typeof bookingData.bookingSlots);
-    
-    // Xử lý booking thành công
-    const booking = await handlebooking(
-      bookingData.idBooking,
-      bookingData.bookingSlots,
-      bookingData.bookingDate,
-      bookingData.totalPrice,
-      bookingData.fullname,
-      bookingData.email,
-      bookingData.phone,
-      bookingData.address,
-      bookingData.specialRequire,
-      bookingData.tour,
-      "paid"
-    );
-
-    // Xóa cache sau khi xử lý
-    bookingCache.del(orderCode.toString());
-
-    return res.status(200).json({
-      success: true,
-      data: booking,
-      error: false,
-    });
+  if (req.query.vnp_ResponseCode === "00") {
+    // ✅ Thành công
+    return res.redirect("http://localhost:5173/booking?status=success");
   } else {
-    // Thanh toán thất bại hoặc bị hủy
-    bookingCache.del(orderCode.toString());
-
-    throw new Error(`thanh toán thất bại ${paymentStatus}`);
+    // ❌ Thất bại / hủy
+    return res.redirect("http://localhost:5173/booking?status=failed");
   }
-});
-module.exports = { createPayOSLink, paymentPayOSWebhook };
+};
+const vnpayIpn = async (req, res) => {
+  try {
+    console.log("IPN chay............");
+
+    const verify = vnpay.verifyIpnCall(req.query);
+    if (!verify.isVerified) {
+      return res
+        .status(400)
+        .json({ RspCode: "97", Message: "Invalid signature" });
+    }
+
+    const responseCode = req.query.vnp_ResponseCode;
+    const idBooking = req.query.vnp_TxnRef;
+    const bookingData = bookingCache.get(idBooking);
+
+    if (!bookingData) {
+      return res
+        .status(400)
+        .json({ RspCode: "01", Message: "Booking not found in cache" });
+    }
+
+    if (responseCode === "00") {
+      console.log("✅ IPN: Thanh toán thành công đơn hàng:", idBooking);
+
+      try {
+        const booking = await handlebooking(
+          bookingData.idBooking,
+          bookingData.bookingSlots,
+          bookingData.bookingDate,
+          bookingData.totalPrice,
+          bookingData.fullname,
+          bookingData.email,
+          bookingData.phone,
+          bookingData.address,
+          bookingData.specialRequire,
+          bookingData.tour,
+          "paid"
+        );
+
+        bookingCache.del(idBooking);
+        return res
+          .status(200)
+          .json({ RspCode: "00", data: booking, Message: "Success" });
+      } catch (err) {
+        console.error("DB error:", err);
+        return res.status(500).json({ RspCode: "99", Message: "DB error" });
+      }
+    }
+
+    return res
+      .status(200)
+      .json({ RspCode: "00", Message: "Payment not completed" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ RspCode: "99", Message: "Lỗi xử lý" });
+  }
+};
+
+module.exports = { createPayment, vnpayReturn, vnpayIpn };

@@ -1,5 +1,7 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const Tour = require("../models/tour.model");
+const bookingModel = require("../models/booking.model");
+const { mailUpdateStartDate } = require("../utils/email.utils");
 
 // Tạo tour
 const createTour = asyncHandler(async (req, res) => {
@@ -76,24 +78,69 @@ const getAllTours = asyncHandler(async (req, res) => {
   });
 });
 
-// Cập nhật tour
 const updateTour = asyncHandler(async (req, res) => {
   const tourId = req.params.id;
   const updatedData = req.body;
 
-  const tour = await Tour.findByIdAndUpdate(tourId, updatedData, { new: true });
-  if (!tour) {
+  // 1️⃣ Lấy tour cũ để so sánh
+  const oldTour = await Tour.findById(tourId);
+  if (!oldTour) {
     res.status(404);
     throw new Error("Tour không tồn tại");
   }
 
+  // 2️⃣ Cập nhật tour
+  const tour = await Tour.findByIdAndUpdate(tourId, updatedData, { new: true });
+
+  // 3️⃣ Nếu có thay đổi startDates thì xử lý
+  if (updatedData.startDates && Array.isArray(updatedData.startDates)) {
+    const oldDates = oldTour.startDates.map((d) => new Date(d).toISOString());
+    const newDates = updatedData.startDates.map((d) =>
+      new Date(d).toISOString()
+    );
+
+    // Tìm những ngày bị xóa hoặc đổi
+    const removedDates = oldDates.filter((d) => !newDates.includes(d));
+
+    if (removedDates.length > 0) {
+      console.log("Các ngày khởi hành bị thay đổi:", removedDates);
+
+      // 4️⃣ Tìm các booking bị ảnh hưởng
+      const affectedBookings = await bookingModel.find({
+        tour: tourId,
+        bookingDate: { $in: removedDates },
+        bookingStatus: { $ne: "cancelled" },
+      });
+
+      // 5️⃣ Gửi email thông báo cho khách
+      try {
+        await Promise.all(
+          affectedBookings.map(async (booking) => {
+            // ✅ Cập nhật trạng thái booking
+            booking.bookingStatus = "pending";
+            booking.adminMessage = `Tour đã thay đổi ngày khởi hành từ ${new Date(
+              booking.bookingDate
+            ).toLocaleDateString("vi-VN")}`;
+            await booking.save();
+
+            // Gửi email (không cần chờ từng cái)
+            await mailUpdateStartDate(tour, booking);
+          })
+        );
+      } catch (error) {
+        console.error("Lỗi gửi mail cho", booking.email, error.message);
+      }
+    }
+  }
+
+  // 6️⃣ Trả về kết quả
   res.status(200).json({
     message: "Cập nhật tour thành công",
-    error: false,
     success: true,
     data: tour,
   });
 });
+
 const deleteTour = asyncHandler(async (req, res) => {
   const tourId = req.params.id;
   const tour = await Tour.findByIdAndDelete(tourId);
@@ -187,7 +234,7 @@ const autoChangeActive = async () => {
     );
 
     // Nếu KHÔNG có ngày khởi hành tương lai => tắt tour
-    if (!hasFutureStartDate && tour.isActive===true) {
+    if (!hasFutureStartDate && tour.isActive === true) {
       tour.isActive = false;
       await tour.save();
       console.log(`Tour ${tour.title} đã được tắt (hết ngày khởi hành).`);
@@ -205,5 +252,5 @@ module.exports = {
   addReview,
   getAllReview,
   deleteReview,
-  autoChangeActive
+  autoChangeActive,
 };

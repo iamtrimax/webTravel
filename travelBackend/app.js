@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -13,7 +14,6 @@ const { autoChangeActive } = require("./src/controller/tour.controller");
 
 const app = express();
 const PORT = 3000;
-require("dotenv").config();
 app.use(
   cors({
     origin: "http://localhost:5173", // Đúng với frontend
@@ -26,8 +26,8 @@ app.use(cookieParser());
 app.use("/api", route);
 app.use(errorHandler);
 
-cron.schedule("*/2 * * * *", autoCancelBooking)
-cron.schedule("*/2 * * * *", autoChangeActive)
+cron.schedule("0 */6 * * *", autoCancelBooking)
+cron.schedule("0 8 * * *", autoChangeActive)
 
 connectMongoDb().then(() => {
   const server = app.listen(PORT, () => {

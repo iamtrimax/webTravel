@@ -128,6 +128,12 @@ const MyTicketsModal = () => {
     } finally {
       setLoading(false);
     }
+    //  const response = await fetch("http://localhost:3000/api/checkapi", {
+    //     method: "post",
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     }
+    //   });
   };
 
   // Format functions

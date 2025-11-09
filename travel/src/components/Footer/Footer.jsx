@@ -123,15 +123,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-
-      {/* Scroll to Top Button */}
-      <button 
-        className="scroll-to-top" 
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        aria-label="Scroll to top"
-      >
-        <i className="fas fa-chevron-up"></i>
-      </button>
     </footer>
   );
 };

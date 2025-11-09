@@ -31,6 +31,8 @@ const BookingManagement = () => {
       }
     })
     const data = await fetchBookings.json()
+    console.log(data);
+
     if (data.success) {
       console.log(data.data);
 
@@ -71,11 +73,11 @@ const BookingManagement = () => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       result = result.filter(booking =>
-        booking.customer.name.toLowerCase().includes(searchLower) ||
-        booking.customer.email.toLowerCase().includes(searchLower) ||
-        booking.customer.phone.includes(filters.search) ||
-        booking.tourTitle.toLowerCase().includes(searchLower) ||
-        booking.id.toLowerCase().includes(searchLower)
+        booking.fullname.toLowerCase().includes(searchLower) ||
+        booking.email.toLowerCase().includes(searchLower) ||
+        booking.phone.includes(filters.search) ||
+        booking.tour.title.toLowerCase().includes(searchLower) ||
+        booking.idBooking.toLowerCase().includes(searchLower)
       );
     }
 
@@ -239,7 +241,9 @@ const BookingManagement = () => {
           <tbody>
             {filteredBookings.map(booking => (
               <tr key={booking.id}>
-                <td className="booking-id">{booking.idBooking}</td>
+                <td className="booking-id">
+                  {booking.idBooking}
+                </td>
                 <td>
                   <div className="customer-info">
                     <strong>{booking.fullname}</strong>
@@ -300,8 +304,11 @@ const BookingManagement = () => {
                     }
                   </div>
                 </td>
+
               </tr>
-            ))}
+            ))
+            }
+
           </tbody>
         </table>
 

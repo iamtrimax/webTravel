@@ -149,9 +149,13 @@ const sumaryApi = {
     url: `${url_api}/comment-post/:id/:commentId`,
     method: "DELETE",
   },
-  paymentPayOS:{
-    url: `${url_api}/payments/payos-createlink`,
+  paymentVnpay: {
+    url: `${url_api}/payment/create`,
     method: "POST",
-  }
+  },
+  AIChat: {
+    url: `${url_api}/chat`,
+    method: "POST",
+  },
 };
 export default sumaryApi;

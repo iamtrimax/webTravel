@@ -162,8 +162,8 @@ const Booking = () => {
           address: customerInfo.address,
           specialRequire: customerInfo.specialRequests
         }
-        const fetchPayOS = await fetch(sumaryApi.paymentPayOS.url, {
-          method: sumaryApi.paymentPayOS.method,
+        const fetchVnpay = await fetch(sumaryApi.paymentVnpay.url, {
+          method: sumaryApi.paymentVnpay.method,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -173,18 +173,18 @@ const Booking = () => {
 
           body: JSON.stringify(data)
         })
-        const dataPayOS = await fetchPayOS.json()
-        if (dataPayOS.success) {
+        const dataVnpay = await fetchVnpay.json()
+        if (dataVnpay.success) {
           const bookingData = {
-            ...dataPayOS.bookingData,
+            ...dataVnpay.bookingData,
             tour: selectedTour // lưu luôn tour hiện tại frontend
           };
           localStorage.setItem("data-booking", JSON.stringify(bookingData));
-          window.location.href = dataPayOS.data;
+          window.location.href = dataVnpay.data;
 
           return;
         } else {
-          toast.error(dataPayOS.message)
+          toast.error(dataVnpay.message)
           return;
         }
       }

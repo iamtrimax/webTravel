@@ -60,6 +60,10 @@ const booking = new mongoose.Schema(
       type: String,
       default: "",
     },
+    adminMessage: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
