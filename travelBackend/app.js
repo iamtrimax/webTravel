@@ -30,7 +30,7 @@ cron.schedule("0 */6 * * *", autoCancelBooking)
 cron.schedule("0 8 * * *", autoChangeActive)
 
 connectMongoDb().then(() => {
-  const server = app.listen(PORT, () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
   });
   const io = new Server(server, {
