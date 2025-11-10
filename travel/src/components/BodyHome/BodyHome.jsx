@@ -1,142 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import './Homebody.scss';
 import formatPrice from '../../helper/formatPrice';
+import sumaryApi from '../../common';
+import { Link, useNavigate } from 'react-router-dom';
 const HomeBody = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [visibleTours, setVisibleTours] = useState(6);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [tours, setTours] = useState([])
+  const [tourFeatures, setTourFeatures] = useState([])
   const tourCategories = [
     { id: 'all', name: 'Tất Cả' },
-    { id: 'domestic', name: 'Trong Nước' },
-    { id: 'international', name: 'Quốc Tế' },
-    { id: 'adventure', name: 'Phiêu Lưu' },
-    { id: 'cultural', name: 'Văn Hóa' },
-    { id: 'beach', name: 'Biển Đảo' }
-  ];
+    { id: 'adventure', name: 'Phiêu lưu' },
+    { id: 'cultural', name: 'Văn hóa' },
+    { id: 'beach', name: 'Bãi biển' },
+    { id: 'city', name: 'Thành phố' },
+    { id: 'moutain', name: 'Núi' },
 
-  const tours = [
-    {
-      id: 1,
-      name: 'Phố Cổ Hội An - Di Sản Văn Hóa',
-      location: 'Hội An, Quảng Nam',
-      category: 'cultural',
-      type: 'domestic',
-      price: 2490000,
-      duration: '3 ngày 2 đêm',
-      rating: 4.8,
-      reviews: 1247,
-      image: 'https://images.unsplash.com/photo-1528127269322-539801943592?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Khám phá vẻ đẹp cổ kính của phố cổ Hội An với những con đường rực rỡ đèn lồng, những ngôi nhà gỗ hàng trăm năm tuổi và ẩm thực đặc sắc miền Trung.',
-      highlights: ['Đèn lồng Hội An', 'Chùa Cầu', 'Ẩm thực phố cổ', 'Làng rau Trà Quế'],
-      featured: true
-    },
-    {
-      id: 2,
-      name: 'Vịnh Hạ Long - Kỳ Quan Thiên Nhiên',
-      location: 'Quảng Ninh',
-      category: 'adventure',
-      type: 'domestic',
-      price: 3890000,
-      duration: '2 ngày 1 đêm',
-      rating: 4.9,
-      reviews: 2156,
-      image: 'https://images.unsplash.com/photo-1575381813691-465c8eac364e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Trải nghiệm du thuyền sang trọng khám phá vịnh Hạ Long - di sản thiên nhiên thế giới với hàng nghìn đảo đá vôi hùng vĩ.',
-      highlights: ['Du thuyền 5 sao', 'Hang Sửng Sốt', 'Kayaking', 'Sun World Ha Long'],
-      featured: true
-    },
-    {
-      id: 3,
-      name: 'Bangkok - Kinh Đô Châu Á',
-      location: 'Thái Lan',
-      category: 'cultural',
-      type: 'international',
-      price: 8990000,
-      duration: '5 ngày 4 đêm',
-      rating: 4.7,
-      reviews: 892,
-      image: 'https://images.unsplash.com/photo-1558769132-cb1aedeffa2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Hòa mình vào nhịp sống sôi động của Bangkok, khám phá những ngôi chùa vàng lộng lẫy và thưởng thức ẩm thực đường phố nổi tiếng.',
-      highlights: ['Chùa Wat Arun', 'Chatuchak Market', 'Chao Phraya Cruise', 'Khao San Road']
-    },
-    {
-      id: 4,
-      name: 'Đà Lạt - Thành Phố Ngàn Hoa',
-      location: 'Lâm Đồng',
-      category: 'cultural',
-      type: 'domestic',
-      price: 3190000,
-      duration: '4 ngày 3 đêm',
-      rating: 4.6,
-      reviews: 1567,
-      image: 'https://images.unsplash.com/photo-1596199050104-6e5a2a5c4b3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Đắm chìm trong không khí se lạnh của Đà Lạt, thành phố ngàn hoa với những đồi thông, vườn hoa và kiến trúc Pháp cổ kính.',
-      highlights: ['Thung lũng Tình Yêu', 'Hồ Xuân Hương', 'Biệt điện Bảo Đại', 'Chợ đêm Đà Lạt']
-    },
-    {
-      id: 5,
-      name: 'Bali - Thiên Đường Nhiệt Đới',
-      location: 'Indonesia',
-      category: 'beach',
-      type: 'international',
-      price: 12990000,
-      duration: '6 ngày 5 đêm',
-      rating: 4.9,
-      reviews: 1789,
-      image: 'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Trải nghiệm thiên đường nhiệt đới Bali với những bãi biển tuyệt đẹp, văn hóa độc đáo và resort sang trọng bậc nhất.',
-      highlights: ['Kuta Beach', 'Uluwatu Temple', 'Tegallalang Rice Terrace', 'Ubud Art Market'],
-      featured: true
-    },
-    {
-      id: 6,
-      name: 'Phú Quốc - Đảo Ngọc',
-      location: 'Kiên Giang',
-      category: 'beach',
-      type: 'domestic',
-      price: 4590000,
-      duration: '4 ngày 3 đêm',
-      rating: 4.7,
-      reviews: 1345,
-      image: 'https://images.unsplash.com/photo-1599643478510-a6d6a6d31de4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Thư giãn tại đảo ngọc Phú Quốc với những bãi biển cát trắng, làng chài xinh đẹp và hệ sinh thái biển phong phú.',
-      highlights: ['Bãi Sao', 'VinWonders', 'Suối Tranh', 'Làng chài Hàm Ninh']
-    },
-    {
-      id: 7,
-      name: 'Tokyo - Thành Phố Tương Lai',
-      location: 'Nhật Bản',
-      category: 'cultural',
-      type: 'international',
-      price: 25990000,
-      duration: '7 ngày 6 đêm',
-      rating: 4.8,
-      reviews: 945,
-      image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Khám phá sự kết hợp hoàn hảo giữa truyền thống và hiện đại tại Tokyo, thành phố không bao giờ ngủ.',
-      highlights: ['Shibuya Crossing', 'Asakusa Temple', 'Tokyo Skytree', 'Harajuku Fashion']
-    },
-    {
-      id: 8,
-      name: 'Sapa - Nóc Nhà Đông Dương',
-      location: 'Lào Cai',
-      category: 'adventure',
-      type: 'domestic',
-      price: 2890000,
-      duration: '3 ngày 2 đêm',
-      rating: 4.5,
-      reviews: 876,
-      image: 'https://images.unsplash.com/photo-1552465016-bf2284a6a5c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      description: 'Chinh phục Fansipan - nóc nhà Đông Dương và khám phá vẻ đẹp hùng vĩ của ruộng bậc thang Sapa.',
-      highlights: ['Fansipan Peak', 'Bản Cát Cát', 'Thung lũng Mường Hoa', 'Chợ tình Sapa']
-    }
-  ];
 
-  const filteredTours = tours.filter(tour => 
+  ];
+  const navigator = useNavigate()
+
+  const filteredTours = tours.filter(tour =>
     activeFilter === 'all' || tour.type === activeFilter || tour.category === activeFilter
   );
+  const fecthAllTour = async () => {
+    const fetchRes = await fetch(sumaryApi.getAllTours.url, {
+      method: sumaryApi.getAllTours.method,
+      headers: {
+        "content-type": "application"
+      }
+    })
+    const res = await fetchRes.json()
+    if (res.success) {
+      setTours(res.data.filter(tour => tour.isActive))
+      console.log(res.data);
 
+    }
+    else
+      console.log(res.message);
+
+  }
+  const fecthTourTopRate = async () => {
+    const fetchRes = await fetch(sumaryApi.getToursTopRated.url, {
+      method: sumaryApi.getToursTopRated.method,
+      headers: {
+        "content-type": "application"
+      }
+    })
+    const res = await fetchRes.json()
+    if (res.success) {
+      setTourFeatures(res.data)
+      console.log(res.data);
+
+    }
+    else
+      console.log(res.message);
+
+  }
+  const handleBookTour = (id) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("Bạn cần đăng nhập để đặt tour");
+      navigator("/login");
+      return;
+    }
+
+    // Chuyển đến trang booking với tourId và selectedDate
+    navigator(`/booking?tourId=${id}`);
+  };
   const loadMoreTours = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -145,7 +77,10 @@ const HomeBody = () => {
     }, 800);
   };
 
-
+  useEffect(() => {
+    fecthTourTopRate()
+    fecthAllTour()
+  }, [])
   return (
     <main className="home-body">
       {/* Featured Tours Section */}
@@ -155,38 +90,38 @@ const HomeBody = () => {
             <h2 className="section-title">Tour Nổi Bật</h2>
             <p className="section-subtitle">Khám phá những điểm đến tuyệt vời nhất</p>
           </div>
-          
+
           <div className="featured-grid">
-            {tours.filter(tour => tour.featured).map(tour => (
-              <div key={tour.id} className="featured-card">
+            {tourFeatures.map(tour => (
+              <div key={tour._id} className="featured-card">
                 <div className="card-image">
-                  <img src={tour.image} alt={tour.name} />
+                  <img src={tour.images[0].url} alt={tour.title} />
                   <div className="card-badge">Nổi Bật</div>
                   <div className="card-overlay">
-                    <button className="quick-view-btn">Xem Nhanh</button>
+                    <button className="detail-btn" onClick={() => navigator(`/detail/${tour._id}`)}>👁️ Xem chi tiết</button>
                   </div>
                 </div>
                 <div className="card-content">
                   <div className="tour-meta">
-                    <span className="tour-duration">{tour.duration}</span>
+                    <span className="tour-duration">{`${tour.duration} ngày ${tour.duration - 1} đêm`}</span>
                     <span className="tour-rating">
-                      ⭐ {tour.rating} ({tour.reviews})
+                      ⭐ {tour.rating.average}
                     </span>
                   </div>
-                  <h3 className="tour-name">{tour.name}</h3>
-                  <p className="tour-location">📍 {tour.location}</p>
+                  <h3 className="tour-name">{tour.title}</h3>
+                  <p className="tour-location">📍 {tour.destination}</p>
                   <p className="tour-description">{tour.description}</p>
                   <div className="tour-highlights">
-                    {tour.highlights.slice(0, 2).map((highlight, index) => (
-                      <span key={index} className="highlight-tag">{highlight}</span>
+                    {tour.tags.slice(0, 2).map((tag, index) => (
+                      <span key={index} className="highlight-tag">{tag}</span>
                     ))}
                   </div>
                   <div className="card-footer">
                     <div className="tour-price">
-                      <span className="price">{formatPrice(tour.price)}</span>
+                      <span className="price">{formatPrice(tour.discountPrice || tour.price)}</span>
                       <span className="price-note">/người</span>
                     </div>
-                    <button className="book-now-btn">Đặt Ngay</button>
+                    <button className="book-now-btn" onClick={() => handleBookTour(tour._id)}>Đặt Ngay</button>
                   </div>
                 </div>
               </div>
@@ -221,34 +156,32 @@ const HomeBody = () => {
             {filteredTours.slice(0, visibleTours).map(tour => (
               <div key={tour.id} className="tour-card">
                 <div className="card-image">
-                  <img src={tour.image} alt={tour.name} />
-                  <div className="card-badge">{tour.type === 'domestic' ? 'Trong Nước' : 'Quốc Tế'}</div>
+                  <img src={tour.images[0].url} alt={tour.image} />
                   <div className="card-overlay">
-                    <button className="quick-view-btn">❤️ Yêu thích</button>
-                    <button className="detail-btn">👁️ Xem chi tiết</button>
+                    <button className="detail-btn" onClick={() => navigator(`/detail/${tour._id}`)}>👁️ Xem chi tiết</button>
                   </div>
                 </div>
                 <div className="card-content">
                   <div className="tour-meta">
-                    <span className="tour-duration">{tour.duration}</span>
+                    <span className="tour-duration">{`${tour.duration} ngày ${tour.duration - 1} đêm`}</span>
                     <span className="tour-rating">
-                      ⭐ {tour.rating} ({tour.reviews})
+                      ⭐ {tour.rating.average}
                     </span>
                   </div>
-                  <h3 className="tour-name">{tour.name}</h3>
-                  <p className="tour-location">📍 {tour.location}</p>
+                  <h3 className="tour-name">{tour.title}</h3>
+                  <p className="tour-location">📍 {tour.destination}</p>
                   <p className="tour-description">{tour.description}</p>
                   <div className="tour-highlights">
-                    {tour.highlights.map((highlight, index) => (
-                      <span key={index} className="highlight-tag">{highlight}</span>
+                    {tour.tags.map((tag, index) => (
+                      <span key={index} className="highlight-tag">{tag}</span>
                     ))}
                   </div>
                   <div className="card-footer">
                     <div className="tour-price">
-                      <span className="price">{formatPrice(tour.price)}</span>
+                      <span className="price">{formatPrice(tour.discountPrice || tour.price)}</span>
                       <span className="price-note">/người</span>
                     </div>
-                    <button className="book-now-btn">Đặt Tour</button>
+                    <button className="book-now-btn" onClick={() => handleBookTour(tour._id)}>Đặt Tour</button>
                   </div>
                 </div>
               </div>
@@ -258,7 +191,7 @@ const HomeBody = () => {
           {/* Load More Button */}
           {visibleTours < filteredTours.length && (
             <div className="load-more-container">
-              <button 
+              <button
                 className="load-more-btn"
                 onClick={loadMoreTours}
                 disabled={isLoading}

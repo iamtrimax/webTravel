@@ -251,7 +251,8 @@ tourSchema.methods.getUserRating = function(userId) {
 tourSchema.statics.getTopRated = function(limit = 10) {
   return this.find({ 
     'rating.count': { $gt: 0 },
-    'rating.average': { $gte: 4.0 }
+    'rating.average': { $gte: 4.0 },
+    'isActive':{$ne:false}
   })
   .sort({ 'rating.average': -1, 'rating.count': -1 })
   .limit(limit);

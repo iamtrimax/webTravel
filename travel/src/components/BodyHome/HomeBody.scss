@@ -149,7 +149,7 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transform: scale(1.1);
     }
 
-    .card-overlay {
+    .card-image .card-overlay {
       opacity: 1;
     }
   }
@@ -201,17 +201,6 @@ $easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         cursor: pointer;
         transition: all 0.3s ease;
         backdrop-filter: blur(10px);
-
-        &.quick-view-btn {
-          background: rgba($primary-color, 0.9);
-          color: $light-color;
-
-          &:hover {
-            background: $primary-color;
-            transform: scale(1.05);
-          }
-        }
-
         &.detail-btn {
           background: rgba($light-color, 0.9);
           color: $dark-color;

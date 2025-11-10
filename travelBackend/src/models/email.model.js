@@ -1,14 +1,4 @@
 const mongoose = require("mongoose");
-//  id: 1,
-//         userId: 'USR001',
-//         userName: 'Nguyễn Văn A',
-//         userEmail: 'nguyenvana@email.com',
-//         subject: 'Hỏi về tour Đà Nẵng',
-//         content: 'Tôi muốn hỏi về lịch trình tour Đà Nẵng 4 ngày 3 đêm...',
-//         timestamp: '2024-01-15 14:30',
-//         isRead: false,
-//         isReplied: false,
-//         priority: 'high'
 const emailModel = new mongoose.Schema(
   {
     userId: {

@@ -1,10 +1,10 @@
 const express = require("express");
-const { userRegister, userLogin, userDetails, userLogout, sentEmail} = require("../controller/user.controller");
+const { userRegister, userLogin, userDetails, userLogout, sentEmail, getTotalUser, getUnreadEmailCount} = require("../controller/user.controller");
 const verifyAccessToken = require("../middleware/verifyAccessToken");
 const verifyAdmin = require("../middleware/verifyAdmin");
-const { createTour, getAllTours, updateTour, deleteTour, toggleTourStatus, getTourDetail, addReview, getAllReview, deleteReview } = require("../controller/tour.controller");
+const { createTour, getAllTours, updateTour, deleteTour, toggleTourStatus, getTourDetail, addReview, getAllReview, deleteReview, getTourFeature } = require("../controller/tour.controller");
 const { adminLogin, getAllUsers, createUser, toggleBlockUser, updateRoleUser, deleteUser, deleteImage, getAllEmail, replyEmail } = require("../controller/admin.controller");
-const { createBooking, getAllBooking, changeStatusBooking, getBookingByAccount, cancelBooking, changePayStatus } = require("../controller/booking.controller");
+const { createBooking, getAllBooking, changeStatusBooking, getBookingByAccount, cancelBooking, changePayStatus, getDailyRevenue, getDailyBookingCount, getMonthlyRevenue, getDailyBookings } = require("../controller/booking.controller");
 const { postShare, getAllPosts, likePost, deletePost, postComment, deleteComment } = require("../controller/post.controller");
 const { AIChat } = require("../controller/AI.controller");
 const { createPayment, vnpayReturn, vnpayIpn } = require("../controller/payment.controller");
@@ -15,6 +15,7 @@ route.post("/register", userRegister);
 route.post("/login", userLogin);
 route.get("/tour-detail/:id", getTourDetail)
 route.get("/tours",getAllTours);
+route.get("/tours-top-rated", getTourFeature)
 route.get("/get-all-review/:id", getAllReview)
 route.get("/posts", getAllPosts);
 
@@ -48,6 +49,15 @@ route.post("/admin/replyemail",verifyAccessToken, verifyAdmin, replyEmail)
 route.get("/admin/allbooking", verifyAccessToken, verifyAdmin,getAllBooking)
 route.put("/admin/confirm/:id", verifyAccessToken, verifyAdmin, changeStatusBooking)
 route.put("/admin/change-pay-status/:id", verifyAccessToken, verifyAdmin, changePayStatus)
+route.get("/admin/get-daily-revenue",verifyAccessToken, verifyAdmin, getDailyRevenue)
+route.get("/admin/get-daily-booking",verifyAccessToken, verifyAdmin, getDailyBookingCount)
+route.get("/admin/get-totaluser",verifyAccessToken, verifyAdmin, getTotalUser)
+route.get("/admin/get-unread-email",verifyAccessToken, verifyAdmin, getUnreadEmailCount)
+route.get("/admin/get-monthly-revenue",verifyAccessToken, verifyAdmin, getMonthlyRevenue)
+route.get("/admin/get-daily-bookings",verifyAccessToken, verifyAdmin, getDailyBookings)
+
+
+
 
 //cloudinary
 route.delete("/admin/cloudinary/image", verifyAccessToken, verifyAdmin, deleteImage);

@@ -35,32 +35,7 @@ const searchTours = async (query) => {
     // Tìm kiếm theo tags
     searchConditions.push({ tags: { $in: [new RegExp(lowercaseQuery, 'i')] } });
 
-    // Tìm kiếm theo từ khóa đặc biệt
-    if (lowercaseQuery.includes('đà nẵng') || lowercaseQuery.includes('da nang')) {
-      searchConditions.push({ 
-        $or: [
-          { destination: { $regex: 'đà nẵng', $options: 'i' } },
-          { title: { $regex: 'đà nẵng', $options: 'i' } }
-        ]
-      });
-    }
 
-    if (lowercaseQuery.includes('phú quốc') || lowercaseQuery.includes('phu quoc')) {
-      searchConditions.push({ 
-        $or: [
-          { destination: { $regex: 'phú quốc', $options: 'i' } },
-          { title: { $regex: 'phú quốc', $options: 'i' } }
-        ]
-      });
-    }
-
-    if (lowercaseQuery.includes('nội địa') || lowercaseQuery.includes('trong nước')) {
-      searchConditions.push({ category: { $regex: 'nội địa', $options: 'i' } });
-    }
-
-    if (lowercaseQuery.includes('quốc tế') || lowercaseQuery.includes('nước ngoài')) {
-      searchConditions.push({ category: { $regex: 'quốc tế', $options: 'i' } });
-    }
 
     // Tìm kiếm theo giá
     if (lowercaseQuery.includes('giá') || lowercaseQuery.includes('gia')) {

@@ -160,7 +160,216 @@ const autoCancelBooking = asyncHandler(async () => {
   }
 });
 
+const getDailyRevenue = asyncHandler(async (req, res) => {
+    // 1. Xác định phạm vi thời gian (từ 00:00:00 đến 23:59:59 hôm nay)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0); // Đặt về 00:00:00.000
 
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999); // Đặt về 23:59:59.999
+
+    
+        // 2. Sử dụng Aggregation để lọc và tính tổng
+        const revenueResult = await bookingModel.aggregate([
+            {
+                // Bước 1: Lọc các đơn hàng thành công trong ngày hôm nay
+                $match: {
+                    // Giả định bạn có trường 'isPaid' hoặc 'status' để lọc đơn hàng thành công
+                    payStatus:"paid",
+                    bookingStatus:{$ne:"cancelled"}, 
+                    createdAt: {
+                        $gte: startOfToday,
+                        $lte: endOfToday
+                    }
+                }
+            },
+            {
+                // Bước 2: Tính tổng doanh thu
+                $group: {
+                    _id: null, // Nhóm tất cả kết quả thành một
+                    totalRevenue: { $sum: '$totalPrice' } // Tính tổng trường totalAmount
+                }
+            }
+        ]);
+
+        // Xử lý kết quả trả về
+        const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+
+        res.status(200).json({
+            success: true,
+            message: "Lấy doanh thu hôm nay thành công",
+            data: {
+                totalRevenue: totalRevenue
+            }
+        });
+});
+const getDailyBookingCount = asyncHandler(async (req, res) => {
+    // 1. Xác định phạm vi thời gian
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0); 
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999); 
+
+    // 2. Sử dụng Aggregation để lọc và đếm số lượng
+    const bookingCountResult = await bookingModel.aggregate([
+        {
+            $match: {
+                // Lọc các đơn hàng đã thanh toán và chưa bị hủy
+                payStatus: "paid",
+                bookingStatus: { $ne: "cancelled" }, 
+                createdAt: {
+                    $gte: startOfToday,
+                    $lte: endOfToday
+                }
+            }
+        },
+        {
+            // Đếm tổng số tài liệu (bookings)
+            $group: {
+                _id: null,
+                totalBookings: { $sum: 1 } 
+            }
+        }
+    ]);
+
+    // 3. Xử lý kết quả trả về
+    const totalBookings = bookingCountResult.length > 0 ? bookingCountResult[0].totalBookings : 0;
+
+    res.status(200).json({
+        success: true,
+        message: "Lấy tổng số lượt đặt tour hôm nay thành công",
+        data: {
+            totalBookings: totalBookings
+        }
+    });
+});
+
+const getMonthlyRevenue = asyncHandler(async (req, res) => {
+    // Lấy doanh thu trong 12 tháng gần nhất (có thể điều chỉnh)
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    twelveMonthsAgo.setHours(0, 0, 0, 0);
+
+    const monthlyRevenue = await bookingModel.aggregate([
+        {
+            // Bước 1: Lọc các giao dịch hợp lệ (đã thanh toán, không hủy) và giới hạn thời gian
+            $match: {
+                payStatus: "paid",
+                bookingStatus: { $ne: "cancelled" }, 
+                createdAt: { $gte: twelveMonthsAgo } // Lấy 12 tháng gần nhất
+            }
+        },
+        {
+            // Bước 2: Nhóm và tính toán
+            $group: {
+                // Nhóm theo Năm và Tháng
+                _id: {
+                    year: { $year: "$createdAt" },
+                    month: { $month: "$createdAt" }
+                },
+                // Tính tổng doanh thu
+                totalRevenue: { $sum: '$totalPrice' },
+                // Đếm tổng số đơn hàng
+                totalBookings: { $sum: 1 } 
+            }
+        },
+        {
+            // Bước 3: Sắp xếp theo Năm và Tháng để hiển thị biểu đồ đúng thứ tự
+            $sort: {
+                "_id.year": 1,
+                "_id.month": 1
+            }
+        },
+        {
+            // Bước 4: Định dạng lại output cho dễ đọc hơn
+            $project: {
+                _id: 0, // Bỏ trường _id mặc định
+                month: "$_id.month",
+                year: "$_id.year",
+                label: { 
+                    $concat: [
+                        { $toString: "$_id.month" }, 
+                        "/", 
+                        { $toString: "$_id.year" } 
+                    ] 
+                },
+                totalRevenue: 1,
+                totalBookings: 1
+            }
+        }
+    ]);
+    console.log(monthlyRevenue);
+    
+    res.status(200).json({
+        success: true,
+        message: "Lấy doanh thu theo tháng thành công",
+        data: monthlyRevenue
+    });
+});
+const getDailyBookings = asyncHandler(async (req, res) => {
+    // 1. Xác định phạm vi thời gian (30 ngày gần nhất)
+    const thirtyDaysAgo = new Date();
+    // Quay lại 30 ngày
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); 
+    thirtyDaysAgo.setHours(0, 0, 0, 0); // Bắt đầu từ 00:00:00 của ngày đó
+
+    const dailyBookings = await bookingModel.aggregate([
+        {
+            // Bước 1: Lọc các đơn hàng hợp lệ (đã thanh toán, không hủy) và giới hạn thời gian
+            $match: {
+                payStatus: "paid",
+                bookingStatus: { $ne: "cancelled" }, 
+                createdAt: { $gte: thirtyDaysAgo } // Lấy 30 ngày gần nhất
+            }
+        },
+        {
+            // Bước 2: Nhóm và tính toán
+            $group: {
+                // Nhóm theo Ngày, Tháng và Năm
+                _id: {
+                    year: { $year: "$createdAt" },
+                    month: { $month: "$createdAt" },
+                    day: { $dayOfMonth: "$createdAt" }
+                },
+                // Đếm tổng số lượt đặt tour
+                totalBookings: { $sum: 1 } 
+            }
+        },
+        {
+            // Bước 3: Sắp xếp theo thứ tự thời gian tăng dần
+            $sort: {
+                "_id.year": 1,
+                "_id.month": 1,
+                "_id.day": 1
+            }
+        },
+        {
+            // Bước 4: Định dạng lại output cho dễ đọc hơn
+            $project: {
+                _id: 0, 
+                day: "$_id.day",
+                month: "$_id.month",
+                year: "$_id.year",
+                // Tạo label dạng DD/MM
+                label: { 
+                    $concat: [
+                        { $toString: "$_id.day" }, 
+                        "/", 
+                        { $toString: "$_id.month" } 
+                    ] 
+                },
+                totalBookings: 1
+            }
+        }
+    ]);
+
+    res.status(200).json({
+        success: true,
+        message: "Lấy lượt đặt tour theo ngày thành công",
+        data: dailyBookings
+    });
+});
 module.exports = {
   createBooking,
   getAllBooking,
@@ -169,4 +378,8 @@ module.exports = {
   cancelBooking,
   changePayStatus,
   autoCancelBooking,
+  getDailyRevenue,
+  getDailyBookingCount,
+  getMonthlyRevenue,
+  getDailyBookings
 };

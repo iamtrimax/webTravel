@@ -241,7 +241,16 @@ const autoChangeActive = async () => {
     }
   }
 };
-
+const getTourFeature = asyncHandler(async (req, res) => {
+  const tour = await Tour.getTopRated(10);
+  console.log(tour);
+  
+  res.status(200).json({
+    data: tour,
+    success: true,
+    error: false,
+  });
+});
 module.exports = {
   createTour,
   getAllTours,
@@ -253,4 +262,5 @@ module.exports = {
   getAllReview,
   deleteReview,
   autoChangeActive,
+  getTourFeature,
 };

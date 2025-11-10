@@ -9,7 +9,7 @@ const Contact = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState('');
     const token = localStorage.getItem("accessToken")
-    
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -243,14 +243,16 @@ const Contact = () => {
                 {/* Map Section */}
                 <div className="mt-16 bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-gray-700/50">
                     <div className="h-96 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center relative">
-                        <div className="absolute inset-0 bg-black/20"></div>
-                        <div className="text-center relative z-10">
-                            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
-                            <p className="text-gray-300 text-lg font-medium">Bản đồ sẽ được hiển thị tại đây</p>
-                            <p className="text-gray-400 mt-2">Đang cập nhật...</p>
-                        </div>
+                        <iframe
+                            // THAY ĐỔI URL NÀY BẰNG ĐỊA CHỈ GOOGLE MAPS CỦA BẠN
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.450648144869!2d106.76257577451815!3d10.85328825777239!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3175279f2ead6ca7%3A0xd3a9605118c8039b!2zNTkgxJDGsOG7nW5nIHPhu5EgOSwgTGluaCBDaGnhu4N1LCBUaOG7pyDEkOG7qWMsIFRow6BuaCBwaOG7kSBI4buTIENow60gTWluaCwgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1762765579449!5m2!1svi!2s" width="100%"
+                            height="100%"
+                            style={{ border: 0 }} // Sử dụng style object trong React
+                            allowFullScreen=""
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title="Vị trí công ty" // Thêm title cho accessibility
+                        ></iframe>
                     </div>
                 </div>
             </div>

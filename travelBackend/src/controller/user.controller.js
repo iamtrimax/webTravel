@@ -2,8 +2,9 @@ const userModel = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("../middleware/asyncHandler");
-const {sendMail } = require("../Services/userService");
+const { sendMail } = require("../Services/userService");
 const redis = require("../config/redisConfig");
+const emailModel = require("../models/email.model");
 require("dotenv").config();
 
 const generateAccessToken = (user, exp) => {
@@ -70,7 +71,7 @@ const userRegister = asyncHandler(async (req, res) => {
 const userLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await userModel.findOne({ email, role: 'user' });
+  const user = await userModel.findOne({ email, role: "user" });
   if (!user) {
     res.status(400);
     throw new Error("Tài khoản không tồn tại");
@@ -137,22 +138,46 @@ const userLogout = asyncHandler(async (req, res) => {
     message: "Đăng xuất thành công",
   });
 });
-const sentEmail = asyncHandler(async (req, res)=>{
+const sentEmail = asyncHandler(async (req, res) => {
   const userId = req.userId;
-  const {subject, content} = req.body;
-  await sendMail(userId,subject,content);
+  const { subject, content } = req.body;
+  await sendMail(userId, subject, content);
   return res.status(200).json({
     message: "đã gửi email tới quản trị viên",
     success: true,
     error: false,
-  })
-}) 
+  });
+});
+const getTotalUser = asyncHandler(async (req, res) => {
+  const userCount = await userModel.countDocuments();
+  res.status(200).json({
+    data: userCount,
+    success: true,
+  });
+});
 
+
+const getUnreadEmailCount = asyncHandler(async (req, res) => {
+  // Sử dụng countDocuments() để đếm số lượng tài liệu khớp với điều kiện isRead: false
+  const unreadCount = await emailModel.countDocuments({
+    isRead: false,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Lấy số lượng email chưa đọc thành công",
+    data: {
+      unreadCount: unreadCount,
+    },
+  });
+});
 module.exports = {
   userRegister,
   userLogin,
   userDetails,
   userLogout,
   generateAccessToken,
-  sentEmail
+  sentEmail,
+  getTotalUser,
+  getUnreadEmailCount
 };

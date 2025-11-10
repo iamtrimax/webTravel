@@ -6,7 +6,7 @@ const {
   mailAutoCancelBooking,
   mailPayConfirm,
 } = require("../utils/email.utils");
-const { PayOSRefund } = require("../utils/paymentRefund");
+const { paymentReturn } = require("../utils/paymentRefund");
 
 let io, onlineUsers;
 
@@ -91,7 +91,7 @@ const handlebooking = async (
   address,
   specialRequire,
   tour,
-  payStatus,
+  payStatus
 ) => {
   const user = await userModel.findOne({ email }).select("username");
   const username = user.username;
@@ -147,24 +147,24 @@ const cancelBookingService = async (booking) => {
     res.status(400);
     throw new Error("Vé không thể hủy");
   }
-  // const today = new Date()
-  // const startDate = new Date(booking.bookingDate)
-  // const diffDays = Math.ceil((startDate-today)/(1000*60*60*24))
-  // let refundPer = 0
-  // if(diffDays>=7)
-  //   refundPer = 1006
-  // else if(diffDays>=3)
-  //   refundPer = 50
-  // console.log("refundPer----------",refundPer);
-  
-  // const refundAmount = (booking.totalPrice * refundPer)/100
-  // console.log("refundAmount-------", refundAmount);
-  
-  // console.log("orderCode========", booking.orderCode);
-  
-  // if(booking.orderCode && refundPer>0){
-  //   await PayOSRefund(booking.orderCode, refundPer, refundAmount)
-  // }
+  if (booking.payStatus === "paid") {
+    const today = new Date();
+    const startDate = new Date(booking.bookingDate);
+    const diffDays = Math.ceil((startDate - today) / (1000 * 60 * 60 * 24));
+    let refundPer = 0;
+    if (diffDays >= 7) refundPer = 100;
+    else if (diffDays >= 3) refundPer = 50;
+    console.log("refundPer----------", refundPer);
+
+    const refundAmount = (booking.totalPrice * refundPer) / 100;
+    console.log("refundAmount-------", refundAmount);
+
+    if (refundPer > 0) {
+      await paymentReturn(booking, refundPer, refundAmount);
+      booking.payStatus = "refunded"
+      await booking.save()
+    }
+  }
   booking.bookingStatus = "cancelled";
   await booking.save();
   const tour = await Tour.findById(booking.tour._id);

@@ -22,26 +22,91 @@ const AdminDashboard = () => {
     activeTours: 0,
     unreadEmails: 0
   });
-
   // Mock data cho emails
   const [emails, setEmails] = useState([]);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [replyContent, setReplyContent] = useState('');
   const [emailFilter, setEmailFilter] = useState('all'); // all, unread, replied
+  
+  const [monthlyData, setMonthlyData] = useState([]) 
+    const [dailyBookingData, setDailyBookingData] = useState([]) 
 
+  const fetchDailyRevenue = async () => {
+    const fetchRevenue = await fetch(sumaryApi.getDailyRevenue.url, {
+      method: sumaryApi.getDailyRevenue.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+    })
+    const res = await fetchRevenue.json();
+    setStats(prev => ({ ...prev, dailyRevenue: res.data.totalRevenue }));
+  }
+  const fetchDailyBooking = async () => {
+    const fetchBookingCount = await fetch(sumaryApi.getDailyBooking.url, {
+      method: sumaryApi.getDailyBooking.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+    })
+    const res = await fetchBookingCount.json();
+    setStats(prev => ({ ...prev, dailyBookings: res.data.totalBookings }));
+  }
+  const fetchTotalUser = async () => {
+    const fetchBookingCount = await fetch(sumaryApi.getTotalUser.url, {
+      method: sumaryApi.getTotalUser.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+    })
+    const res = await fetchBookingCount.json();
+    setStats(prev => ({ ...prev, totalUsers: res.data }));
+  }
+   const fetchUnreadEmail = async () => {
+    const fetchEmailCount = await fetch(sumaryApi.getUnreadEmail.url, {
+      method: sumaryApi.getUnreadEmail.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+    })
+    const res = await fetchEmailCount.json();
+    setStats(prev => ({ ...prev, unreadEmails: res.data.unreadCount}));
+  }
+    const fetchMonthlyRevenue = async () => {
+    const fetchRevenue = await fetch(sumaryApi.getMonthlyRevenue.url, {
+      method: sumaryApi.getMonthlyRevenue.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+    })
+    const res = await fetchRevenue.json();
+    setMonthlyData(res.data);
+  }
+    const fetchDailyBookings = async () => {
+    const fetchBookingData = await fetch(sumaryApi.getDailyBookings.url, {
+      method: sumaryApi.getDailyBookings.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+    })
+    const res = await fetchBookingData.json();
+    setDailyBookingData(res.data);
+  }
   useEffect(() => {
 
-    // Giả lập dữ liệu thống kê
-    setStats({
-      dailyRevenue: 12500000,
-      monthlyRevenue: 375000000,
-      dailyBookings: 47,
-      monthlyBookings: 1250,
-      totalUsers: 5842,
-      activeTours: 36,
-      unreadEmails: 3
-    });
+    fetchDailyRevenue()
+    fetchDailyBooking()
+    fetchTotalUser()
+    fetchUnreadEmail()
+    fetchMonthlyRevenue()
     fetchEmail();
+    fetchDailyBookings()
+
     connectSocket()
     socket.on("connect", () => {
       console.log("user connect......", socket.id);
@@ -157,7 +222,7 @@ const AdminDashboard = () => {
           setEmailFilter={setEmailFilter}
         />;
       default:
-        return <DashboardOverview stats={stats} />;
+        return <DashboardOverview stats={stats} monthlyData={monthlyData} dailyBookingsData={dailyBookingData} />;
     }
   };
 

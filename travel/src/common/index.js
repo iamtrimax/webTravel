@@ -37,6 +37,10 @@ const sumaryApi = {
     url: `${url_api}/tours`,
     method: "GET",
   },
+  getToursTopRated: {
+    url: `${url_api}/tours-top-rated`,
+    method: "GET",
+  },
   getTourDetail: {
     url: `${url_api}/tour-detail/:id`,
     method: "GET",
@@ -156,6 +160,30 @@ const sumaryApi = {
   AIChat: {
     url: `${url_api}/chat`,
     method: "POST",
+  },
+  getDailyRevenue: {
+    url: `${url_api}/admin/get-daily-revenue`,
+    method: "GET",
+  },
+  getDailyBooking: {
+    url: `${url_api}/admin/get-daily-booking`,
+    method: "GET",
+  },
+  getTotalUser: {
+    url: `${url_api}/admin/get-totaluser`,
+    method: "GET",
+  },
+  getUnreadEmail: {
+    url: `${url_api}/admin/get-unread-email`,
+    method: "GET",
+  },
+  getMonthlyRevenue: {
+    url: `${url_api}/admin/get-monthly-revenue`,
+    method: "GET",
+  },
+    getDailyBookings: {
+    url: `${url_api}/admin/get-daily-bookings`,
+    method: "GET",
   },
 };
 export default sumaryApi;
