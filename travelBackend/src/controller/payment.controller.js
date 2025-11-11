@@ -46,7 +46,9 @@ const createPayment = asyncHandler(async (req, res) => {
     vnp_ReturnUrl: process.env.VNP_RETURNURL,
     vnp_BankCode: "NCB",
     vnp_CreateDate: dateFormat(now),
-    vnp_ExpireDate: dateFormat(now + 10 * 60 * 1000),
+    vnp_ExpireDate: dateFormat(
+      new Date( now + 10 * 60 * 1000)
+    ),
     vnp_IpAddr: "127.0.0.1",
   });
   console.log("✅ Generated URL:", paymentUrl);
