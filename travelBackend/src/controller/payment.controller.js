@@ -10,7 +10,6 @@ const bookingCache = new nodeCache({ stdTTL: 600 });
 const createPayment = asyncHandler(async (req, res) => {
   const email = req.user.email;
   // 🟢 Lấy IP thật (quan trọng!)
-  console.log("💡 Client IP:", clientIp);
   const {
     bookingSlots,
     bookingDate,
