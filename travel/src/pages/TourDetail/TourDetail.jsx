@@ -163,19 +163,30 @@ const TourDetail = () => {
   };
 
   // Đóng dropdown khi click ra ngoài
-  useEffect(() => {
-    setCurrentUserId(jwtDecode(token)?.id || null);
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.review-actions')) {
-        setActiveActionId(null);
-      }
-    };
+useEffect(() => {
+  if (token) {  // kiểm tra token tồn tại
+    try {
+      setCurrentUserId(jwtDecode(token)?.id || null);
+    } catch (err) {
+      console.error("Invalid token:", err);
+      setCurrentUserId(null);
+    }
+  } else {
+    setCurrentUserId(null);
+  }
 
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, []);
+  const handleClickOutside = (event) => {
+    if (!event.target.closest('.review-actions')) {
+      setActiveActionId(null);
+    }
+  };
+
+  document.addEventListener('click', handleClickOutside);
+  return () => {
+    document.removeEventListener('click', handleClickOutside);
+  };
+}, [token]);
+
 
 
 

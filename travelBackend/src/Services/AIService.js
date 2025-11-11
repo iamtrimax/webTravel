@@ -10,7 +10,7 @@ const getAIResponseWithContext = async (userMessage, conversationHistory = [])=>
     const context = formatContextForAI(relevantData);
     
     // 2. Build prompt với context
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const systemPrompt = `Bạn là trợ lý ảo cho công ty du lịch ${companyInfo.name}. 
 HÃY CHỈ SỬ DỤNG THÔNG TIN DƯỚI ĐÂY ĐỂ TRẢ LỜI, KHÔNG TỰ BỊA RA THÔNG TIN:
