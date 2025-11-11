@@ -19,7 +19,9 @@ const createPayment = asyncHandler(async (req, res) => {
     specialRequire,
     tourId,
   } = req.body;
-  const now = new Date({ timeZone: "Asia/Ho_Chi_Minh" });
+  const now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+  );
   const tour = await Tour.findById(tourId);
   if (!tour) {
     res.status(404);
@@ -46,9 +48,7 @@ const createPayment = asyncHandler(async (req, res) => {
     vnp_ReturnUrl: process.env.VNP_RETURNURL,
     vnp_BankCode: "NCB",
     vnp_CreateDate: dateFormat(now),
-    vnp_ExpireDate: dateFormat(
-      new Date( now + 10 * 60 * 1000)
-    ),
+    vnp_ExpireDate: dateFormat(now.getTime() + 10 * 60 * 1000),
     vnp_IpAddr: "127.0.0.1",
   });
   console.log("✅ Generated URL:", paymentUrl);
