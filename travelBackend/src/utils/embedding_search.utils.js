@@ -125,7 +125,7 @@ const searchTours = async (query) => {
 
         if (isGenericSearch) { // <<< ƯU TIÊN XỬ LÝ CỜ NÀY TRƯỚC
             console.log('🌟 Thực thi tìm kiếm Top Tour Mới Nhất.');
-            tourData = await Tour.find().sort({ createdAt: -1 }).limit(5).lean();
+            tourData = await Tour.find().sort({ createdAt: -1 }).limit(15)
 
         } else if (combinedConditions.length === 2) {
             // Có cả 2 điều kiện (Văn bản VÀ Giá)
@@ -144,7 +144,6 @@ const searchTours = async (query) => {
         } else {
             // Không có điều kiện nào
             console.log('❌ Không có điều kiện tìm kiếm cụ thể.');
-            tourData = await Tour.find().lean();
         }
 
         // ... (Log tìm kiếm giữ nguyên)
