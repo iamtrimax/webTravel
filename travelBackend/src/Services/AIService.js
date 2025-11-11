@@ -63,6 +63,7 @@ Hãy trả lời dựa trên dữ liệu trên:`;
         conversationContext += `${role}: ${msg.content}\n`;
       });
     }
+    const fullPrompt = `${systemPrompt}${conversationContext}\n\nKhách hàng: ${userMessage}\nTrợ lý:`;
     // --- BẮT ĐẦU LOGIC THỬ LẠI ---
     let result;
     let success = false;
