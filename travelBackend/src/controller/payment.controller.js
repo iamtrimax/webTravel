@@ -47,7 +47,7 @@ const createPayment = asyncHandler(async (req, res) => {
     vnp_BankCode: "NCB",
     vnp_CreateDate: dateFormat(new Date()),
     vnp_ExpireDate: dateFormat(new Date(Date.now() + 10 * 60 * 1000)),
-    vnp_IpAddr: "16.176.136.189",
+    vnp_IpAddr: "127.0.0.1",
   });
   console.log("✅ Generated URL:", paymentUrl);
   console.log("🔑 Secret Key:", process.env.VNP_HASHSECRET);
