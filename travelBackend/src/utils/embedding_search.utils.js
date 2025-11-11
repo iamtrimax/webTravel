@@ -24,6 +24,7 @@ const searchTours = async (query) => {
 
         const combinedConditions = [];
         let tourData = [];
+        let isGenericSearch = false; // <<< BIẾN CỜ MỚI
 
         // --- 1. Nhóm điều kiện tìm kiếm GIÁ ---
         const priceConditions = [];
@@ -90,7 +91,6 @@ const searchTours = async (query) => {
                 const keywordOrConditions = basicSearchFields.map(field => ({
                     [field]: { $regex: keyword, $options: 'i' }
                 }));
-                // Giả định tags là array of strings
                 keywordOrConditions.push({ tags: { $in: [new RegExp(keyword, 'i')] } }); 
                 textConditions.push({ $or: keywordOrConditions });
             });
@@ -99,17 +99,16 @@ const searchTours = async (query) => {
             combinedConditions.push({ $and: textConditions });
 
         } else if (keywords.length === 0 && priceConditions.length === 0) {
-            // *** ĐIỀU CHỈNH LOGIC XỬ LÝ CÂU HỎI CHUNG CHUNG (VD: "Có tour nào?") ***
+            // *** SỬA LỖI: XỬ LÝ CÂU HỎI CHUNG CHUNG BẰNG BIẾN CỜ ***
             const genericWords = ['tour', 'còn', 'gì', 'hiện có', 'du lịch', 'giới thiệu'];
             const isGenericQuestion = genericWords.some(word => lowercaseQuery.includes(word));
 
             if (isGenericQuestion) {
-                // Nếu là câu hỏi chung chung, đẩy điều kiện rỗng {} để tìm top tour
-                console.log('⭐ Phát hiện câu hỏi chung chung. Đẩy điều kiện rỗng.');
-                combinedConditions.push({}); 
+                // Nếu là câu hỏi chung chung, SET CỜ isGenericSearch = true
+                console.log('⭐ Phát hiện câu hỏi chung chung. Chuẩn bị trả về Top 5 tour.');
+                isGenericSearch = true; // <<< CHỈ SET CỜ, KHÔNG PUSH ĐIỀU KIỆN
             } else {
                 // Trường hợp truy vấn quá ngắn (VD: "a") hoặc không liên quan ("hello")
-                // Search toàn bộ câu (sẽ thất bại, nhưng là fallback cuối)
                 console.log('[Debug] No keywords, no price. Searching for original query in text.');
                 const keywordOrConditions = basicSearchFields.map(field => ({
                     [field]: { $regex: lowercaseQuery, $options: 'i' }
@@ -118,14 +117,17 @@ const searchTours = async (query) => {
                 combinedConditions.push({ $or: keywordOrConditions });
             }
         }
-        // Nếu chỉ có điều kiện giá, code sẽ bỏ qua khối else if này.
 
 
         console.log('📋 Final Search conditions:', JSON.stringify(combinedConditions, null, 2));
 
         // --- 3. Thực hiện tìm kiếm TỔNG HỢP ---
 
-        if (combinedConditions.length === 2) {
+        if (isGenericSearch) { // <<< ƯU TIÊN XỬ LÝ CỜ NÀY TRƯỚC
+            console.log('🌟 Thực thi tìm kiếm Top Tour Mới Nhất.');
+            tourData = await Tour.find().sort({ createdAt: -1 }).limit(5).lean();
+
+        } else if (combinedConditions.length === 2) {
             // Có cả 2 điều kiện (Văn bản VÀ Giá)
             console.log('⭐ Thử tìm kiếm bằng $AND (Văn bản & Giá)...');
             tourData = await Tour.find({ $and: combinedConditions }).lean();
@@ -136,25 +138,17 @@ const searchTours = async (query) => {
                 tourData = await Tour.find({ $or: combinedConditions }).lean();
             }
         } else if (combinedConditions.length === 1) {
-            console.log('⭐ Tìm kiếm bằng 1 điều kiện (Chỉ Văn bản, chỉ Giá, hoặc Top Tour)...');
-
-            if (JSON.stringify(combinedConditions[0]) === '{}') {
-                // Trường hợp câu hỏi chung chung (combinedConditions[0] là {})
-                console.log('🌟 Trả về Top Tour Mới Nhất.');
-                tourData = await Tour.find().sort({ createdAt: -1 }).limit(5).lean();
-            } else {
-                // Trường hợp còn lại (chỉ giá hoặc chỉ từ khóa nghiêm ngặt)
-                tourData = await Tour.find(combinedConditions[0]).lean(); 
-            }
+            // Trường hợp chỉ có Giá HOẶC chỉ có Từ khóa Nghiêm ngặt
+            console.log('⭐ Tìm kiếm bằng 1 điều kiện (Chỉ Văn bản hoặc chỉ Giá)...');
+            tourData = await Tour.find(combinedConditions[0]).lean(); 
         } else {
             // Không có điều kiện nào
             console.log('❌ Không có điều kiện tìm kiếm cụ thể.');
             tourData = [];
         }
 
-
+        // ... (Log tìm kiếm giữ nguyên)
         console.log(`✅ Tìm thấy ${tourData.length} tour`);
-
         if (tourData.length > 0) {
             console.log('📝 Tour tìm được (5 tour đầu):');
             tourData.slice(0, 5).forEach((tour, index) => {
@@ -231,15 +225,12 @@ const searchRelevantData = async (query) => {
         companyInfo: [],
     };
 
-    // Search tours từ database
     results.tours = await searchTours(query);
     console.log(`📊 Tìm thấy ${results.tours.length} tour`);
 
-    // Search company info
     const companyResults = searchCompanyInfo(query);
     console.log(`📋 Kết quả tìm kiếm company info:`, companyResults);
 
-    // Phân loại kết quả companyResults
     results.policies = companyResults.filter(
         (item) =>
             item.includes("Hủy trước") ||
@@ -285,21 +276,17 @@ const formatContextForAI = (relevantData) => {
                 tour.price ? tour.price.toLocaleString() + " VND" : "Liên hệ"
             }\n`;
 
-            // Thêm giá discount nếu có 
             if (tour.discountPrice && tour.discountPrice > 0) {
                 context += `- Giá khuyến mãi: ${tour.discountPrice.toLocaleString()} VND\n`;
             }
 
-            // Chỉ hiển thị mô tả ngắn
             const shortDescription = tour.description ? tour.description.substring(0, 100) + '...' : 'Không có';
             context += `- Mô tả (Ngắn): ${shortDescription}\n`;
 
-            // Thêm tags nếu có
             if (tour.tags && tour.tags.length > 0) {
                 context += `- Thẻ: ${tour.tags.join(", ")}\n`;
             }
 
-            // Thêm startDates nếu có
             if (tour.startDates && tour.startDates.length > 0) {
                 const dates = tour.startDates.map((date) =>
                     new Date(date).toLocaleDateString("vi-VN")
