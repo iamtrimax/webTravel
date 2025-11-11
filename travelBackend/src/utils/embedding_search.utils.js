@@ -105,7 +105,7 @@ const searchTours = async (query) => {
 
             if (isGenericQuestion) {
                 // Nếu là câu hỏi chung chung, SET CỜ isGenericSearch = true
-                console.log('⭐ Phát hiện câu hỏi chung chung. Chuẩn bị trả về Top 5 tour.');
+                console.log('⭐ Phát hiện câu hỏi chung chung. Chuẩn bị trả về Top 15 tour.');
                 isGenericSearch = true; // <<< CHỈ SET CỜ, KHÔNG PUSH ĐIỀU KIỆN
             } else {
                 // Trường hợp truy vấn quá ngắn (VD: "a") hoặc không liên quan ("hello")
@@ -125,7 +125,7 @@ const searchTours = async (query) => {
 
         if (isGenericSearch) { // <<< ƯU TIÊN XỬ LÝ CỜ NÀY TRƯỚC
             console.log('🌟 Thực thi tìm kiếm Top Tour Mới Nhất.');
-            tourData = await Tour.find().sort({ createdAt: -1 }).limit(15)
+            tourData = await Tour.find().sort({ createdAt: -1 }).limit(15).lean(); // Đã sửa lỗi .lean()
 
         } else if (combinedConditions.length === 2) {
             // Có cả 2 điều kiện (Văn bản VÀ Giá)
@@ -138,15 +138,26 @@ const searchTours = async (query) => {
                 tourData = await Tour.find({ $or: combinedConditions }).lean();
             }
         } else if (combinedConditions.length === 1) {
-            // Trường hợp chỉ có Giá HOẶC chỉ có Từ khóa Nghiêm ngặt
-            console.log('⭐ Tìm kiếm bằng 1 điều kiện (Chỉ Văn bản hoặc chỉ Giá)...');
-            tourData = await Tour.find(combinedConditions[0]).lean(); 
+            // Trường hợp chỉ có Văn bản (nghiêm ngặt) HOẶC chỉ có Giá
+            const searchCondition = combinedConditions[0];
+            
+            console.log('⭐ Tìm kiếm bằng 1 điều kiện...');
+            tourData = await Tour.find(searchCondition).lean(); 
+            
+            // LÔ GIC FALLBACK: Nếu tìm kiếm nghiêm ngặt (có $and) thất bại, trả về Top Tour
+            const isStrictTextSearch = searchCondition.hasOwnProperty('$and');
+            
+            if (tourData.length === 0 && isStrictTextSearch) {
+                console.log('⚠️ Tìm kiếm nghiêm ngặt thất bại. FALLBACK về Top Tour.');
+                tourData = await Tour.find().sort({ createdAt: -1 }).limit(15).lean();
+            }
         } else {
             // Không có điều kiện nào
             console.log('❌ Không có điều kiện tìm kiếm cụ thể.');
+            tourData = [];
         }
 
-        // ... (Log tìm kiếm giữ nguyên)
+        
         console.log(`✅ Tìm thấy ${tourData.length} tour`);
         if (tourData.length > 0) {
             console.log('📝 Tour tìm được (5 tour đầu):');
