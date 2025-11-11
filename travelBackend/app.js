@@ -14,12 +14,12 @@ const { autoChangeActive } = require("./src/controller/tour.controller");
 
 const app = express();
 const PORT = 3000;
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Đúng với frontend
-    credentials: true, // Quan trọng!
-  })
-);
+
+app.use(cors({
+  origin: ['https://webtravel.click'],  // domain FE
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
