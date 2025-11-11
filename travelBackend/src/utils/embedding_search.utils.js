@@ -144,7 +144,7 @@ const searchTours = async (query) => {
         } else {
             // Không có điều kiện nào
             console.log('❌ Không có điều kiện tìm kiếm cụ thể.');
-            tourData = [];
+            tourData = await Tour.find().lean();
         }
 
         // ... (Log tìm kiếm giữ nguyên)
