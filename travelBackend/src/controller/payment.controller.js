@@ -19,7 +19,7 @@ const createPayment = asyncHandler(async (req, res) => {
     specialRequire,
     tourId,
   } = req.body;
-
+  const now = new Date({ timeZone: "Asia/Ho_Chi_Minh" });
   const tour = await Tour.findById(tourId);
   if (!tour) {
     res.status(404);
@@ -40,13 +40,13 @@ const createPayment = asyncHandler(async (req, res) => {
 
   const paymentUrl = vnpay.buildPaymentUrl({
     vnp_Version: "2.1.0",
-    vnp_Amount: totalPrice*100,
+    vnp_Amount: totalPrice * 100,
     vnp_TxnRef: idBooking,
     vnp_OrderInfo: `Thanh toan don hang #${idBooking}`,
     vnp_ReturnUrl: process.env.VNP_RETURNURL,
     vnp_BankCode: "NCB",
-    vnp_CreateDate: dateFormat(new Date({ timeZone: "Asia/Ho_Chi_Minh" })),
-    vnp_ExpireDate: dateFormat(new Date(Date.now({ timeZone: "Asia/Ho_Chi_Minh" }) + 10 * 60 * 1000)),
+    vnp_CreateDate: dateFormat(now),
+    vnp_ExpireDate: dateFormat(now + 10 * 60 * 1000),
     vnp_IpAddr: "127.0.0.1",
   });
   console.log("✅ Generated URL:", paymentUrl);
@@ -76,7 +76,6 @@ const vnpayReturn = async (req, res) => {
   const verify = vnpay.verifyReturnUrl(req.query);
 
   console.log("verify.....", verify);
-  
 
   if (!verify.isVerified) {
     return res.redirect("https://webtravel.click/booking?status=invalid");
