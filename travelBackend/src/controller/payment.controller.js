@@ -17,8 +17,8 @@ const createPayment = asyncHandler(async (req, res) => {
     "127.0.0.1";
 
   // Nếu là IPv6 (::1) thì chuyển về 127.0.0.1
-  if (clientIp === "::1" || clientIp === "::ffff:127.0.0.1") {
-    clientIp = "127.0.0.1";
+  if (clientIp === "::1" ||clientIp === '127.0.0.1') {
+    clientIp = "16.176.136.189";
   }
 
   console.log("💡 Client IP:", clientIp);

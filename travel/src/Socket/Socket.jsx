@@ -1,7 +1,7 @@
 // socket.js
 import { io } from "socket.io-client";
 
-const socket = io("https://api.webtravel.click", {
+const socket = io("http://localhost:3000", {
   autoConnect: false,
 }); // backend URL
 export const connectSocket = () => {
