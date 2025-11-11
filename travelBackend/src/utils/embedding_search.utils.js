@@ -1,4 +1,4 @@
-const Tour = require("../models/tour.model");
+const Tour = require("../models/tour.model"); // Đảm bảo đường dẫn này là đúng
 
 const companyInfo = {
   name: "Travel",
@@ -12,7 +12,7 @@ const companyInfo = {
       "Quý khách chọn thanh toán tiền mặt vui lòng thanh toán trước 7 ngày khởi hành",
     payment_methods: [
       "💵 Tiền mặt: Thanh toán trực tiếp tại văn phòng",
-      "🏦 thanh toán online: một số ngân hàng có hỗ trợ",
+      "🏦 Thanh toán online: một số ngân hàng có hỗ trợ",
     ],
   },
 };
@@ -20,32 +20,61 @@ const companyInfo = {
 // Sửa: Thêm async và await
 const searchTours = async (query) => {
   try {
-    const lowercaseQuery = query.toLowerCase();
+    const lowercaseQuery = query.toLowerCase().trim();
     console.log(`🔍 Search query: "${query}" -> "${lowercaseQuery}"`);
 
-    // Tạo mảng điều kiện tìm kiếm
-    const searchConditions = [];
+    // Mảng để chứa các nhóm điều kiện (Text conditions, Price conditions)
+    const combinedConditions = [];
 
-    // Tìm kiếm cơ bản
+    // --- 1. Nhóm điều kiện tìm kiếm VĂN BẢN/TỪ KHÓA ---
+    const textConditions = [];
     const basicSearchFields = ['title', 'destination', 'description', 'category'];
-    basicSearchFields.forEach(field => {
-      searchConditions.push({ [field]: { $regex: lowercaseQuery, $options: 'i' } });
-    });
 
-    // Tìm kiếm theo tags
-    searchConditions.push({ tags: { $in: [new RegExp(lowercaseQuery, 'i')] } });
+    // Tách từ khóa và tạo điều kiện tìm kiếm linh hoạt hơn
+    // Chỉ tìm kiếm các từ có độ dài >= 2
+    const keywords = lowercaseQuery.split(/\s+/).filter(word => word.length >= 2);
+    
+    // Nếu có từ khóa, tạo điều kiện $or cho các trường
+    if (keywords.length > 0) {
+        keywords.forEach(keyword => {
+            // Điều kiện cho mỗi từ khóa phải khớp với ÍT NHẤT 1 trường văn bản HOẶC tags
+            const keywordOrConditions = basicSearchFields.map(field => ({
+                [field]: { $regex: keyword, $options: 'i' }
+            }));
+            // Thêm điều kiện tags
+            keywordOrConditions.push({ tags: { $in: [new RegExp(keyword, 'i')] } });
 
+            // Gom tất cả các điều kiện $or của từ khóa này lại
+            textConditions.push({ $or: keywordOrConditions });
+        });
+    } else {
+        // Trường hợp người dùng chỉ gõ 1 từ hoặc chuỗi ngắn
+        // Sử dụng tìm kiếm cơ bản cho toàn bộ truy vấn nếu không có keywords tách rời
+         const keywordOrConditions = basicSearchFields.map(field => ({
+            [field]: { $regex: lowercaseQuery, $options: 'i' }
+        }));
+        keywordOrConditions.push({ tags: { $in: [new RegExp(lowercaseQuery, 'i')] } });
+        textConditions.push({ $or: keywordOrConditions });
+    }
+    
+    if (textConditions.length > 0) {
+        // Kết hợp các điều kiện từ khóa bằng $and (Tour phải chứa TẤT CẢ từ khóa)
+        combinedConditions.push({ $and: textConditions });
+    }
+    
 
-
-    // Tìm kiếm theo giá
+    // --- 2. Nhóm điều kiện tìm kiếm GIÁ ---
+    const priceConditions = [];
+    
+    // Tìm kiếm theo từ khóa 'giá' hoặc 'rẻ'
     if (lowercaseQuery.includes('giá') || lowercaseQuery.includes('gia')) {
       // Tìm tất cả tour có giá
-      searchConditions.push({ price: { $exists: true, $ne: null } });
+      priceConditions.push({ price: { $exists: true, $ne: null } });
     }
 
     if (lowercaseQuery.includes('rẻ') || lowercaseQuery.includes('re')) {
       // Tìm tour có giá dưới 5 triệu
-      searchConditions.push({ 
+      priceConditions.push({ 
         $or: [
           { price: { $lte: 5000000 } },
           { discountPrice: { $lte: 5000000 } }
@@ -61,14 +90,15 @@ const searchTours = async (query) => {
 
       if (priceMatch[2].includes('triệu') || priceMatch[2].includes('tr')) {
         minPrice = amount * 1000000;
-        maxPrice = (amount + 2) * 1000000;
+        // Khoảng giá rộng hơn 
+        maxPrice = (amount + 5) * 1000000; 
       } else if (priceMatch[2].includes('k') || priceMatch[2].includes('nghìn')) {
         minPrice = amount * 1000;
-        maxPrice = (amount + 500) * 1000;
+        maxPrice = (amount + 1000) * 1000;
       }
 
       if (minPrice > 0) {
-        searchConditions.push({
+        priceConditions.push({
           $or: [
             { price: { $gte: minPrice, $lte: maxPrice } },
             { discountPrice: { $gte: minPrice, $lte: maxPrice } }
@@ -76,31 +106,50 @@ const searchTours = async (query) => {
         });
       }
     }
+    
+    if (priceConditions.length > 0) {
+        // Gom tất cả các điều kiện giá bằng $or (Tour khớp với ÍT NHẤT 1 điều kiện giá)
+        combinedConditions.push({ $or: priceConditions });
+    }
 
-    console.log('📋 Search conditions:', JSON.stringify(searchConditions, null, 2));
 
-    // Thực hiện tìm kiếm
-    const tourData = await Tour.find({
-      $or: searchConditions
-    })
+    console.log('📋 Search conditions:', JSON.stringify(combinedConditions, null, 2));
 
+    // --- 3. Thực hiện tìm kiếm TỔNG HỢP ---
+    let tourData = [];
+    
+    if (combinedConditions.length === 2) {
+        // Trường hợp người dùng nhập VĂN BẢN VÀ GIÁ (VD: "tour Hà Nội 5 triệu")
+        // Ưu tiên tìm kiếm bằng $AND để kết quả chính xác hơn
+        console.log('⭐ Thử tìm kiếm bằng $AND (Văn bản & Giá)...');
+        tourData = await Tour.find({ $and: combinedConditions }).lean();
+
+        // Nếu không tìm thấy, thử tìm kiếm bằng $OR
+        if (tourData.length === 0) {
+            console.log('⭐ Không tìm thấy, thử tìm kiếm bằng $OR (Văn bản hoặc Giá)...');
+            tourData = await Tour.find({ $or: combinedConditions }).lean();
+        }
+    } else if (combinedConditions.length === 1) {
+        // Trường hợp chỉ có VĂN BẢN hoặc chỉ có GIÁ
+        console.log('⭐ Tìm kiếm bằng $OR (Chỉ Văn bản hoặc chỉ Giá)...');
+        tourData = await Tour.find(combinedConditions[0]).lean(); 
+    } else {
+        // Trường hợp không có điều kiện nào được kích hoạt
+        console.log('❌ Không có điều kiện tìm kiếm cụ thể.');
+        tourData = [];
+    }
+    
+    
     console.log(`✅ Tìm thấy ${tourData.length} tour`);
     
-    // Debug chi tiết kết quả tìm được
+    // Debug chi tiết kết quả tìm được (Chỉ hiển thị 5 tour đầu)
     if (tourData.length > 0) {
-      console.log('📝 Tour tìm được:');
-      tourData.forEach((tour, index) => {
-        console.log(`  ${index + 1}. ${tour.title} - ${tour.destination} - ${tour.price} VND`);
+      console.log('📝 Tour tìm được (5 tour đầu):');
+      tourData.slice(0, 5).forEach((tour, index) => {
+        console.log(`  ${index + 1}. ${tour.title} - ${tour.destination} - ${tour.price ? tour.price.toLocaleString() : 'N/A'} VND`);
       });
     } else {
-      console.log('❌ Không tìm thấy tour nào, thử tìm tất cả tour...');
-      
-      // Thử tìm tất cả tour để kiểm tra
-      const allTours = await Tour.find().limit(5).lean();
-      console.log(`📊 Có ${allTours.length} tour trong database:`);
-      allTours.forEach((tour, index) => {
-        console.log(`  ${index + 1}. ${tour.title} - ${tour.destination}`);
-      });
+      console.log('❌ Không tìm thấy tour nào.');
     }
 
     return tourData;
@@ -110,12 +159,14 @@ const searchTours = async (query) => {
     return [];
   }
 };
+
 // Sửa: Đổi tên hàm cho đúng
 const searchCompanyInfo = (query) => {
   const lowercaseQuery = query.toLowerCase();
   const info = [];
 
-  if (lowercaseQuery.includes("hủy") || lowercaseQuery.includes("hủy tour")) {
+  // Policy search
+  if (lowercaseQuery.includes("hủy") || lowercaseQuery.includes("hủy tour") || lowercaseQuery.includes("hoàn tiền")) {
     info.push(companyInfo.policies.cancellation);
   }
 
@@ -137,7 +188,8 @@ const searchCompanyInfo = (query) => {
       info.push(`- ${method}`);
     });
   }
-
+  
+  // Contact search
   if (
     lowercaseQuery.includes("liên hệ") ||
     lowercaseQuery.includes("số điện thoại") ||
@@ -149,7 +201,8 @@ const searchCompanyInfo = (query) => {
 
   if (
     lowercaseQuery.includes("địa chỉ") ||
-    lowercaseQuery.includes("công ty")
+    lowercaseQuery.includes("công ty") ||
+    lowercaseQuery.includes("văn phòng")
   ) {
     info.push(`Địa chỉ: ${companyInfo.address}`);
   }
@@ -158,7 +211,6 @@ const searchCompanyInfo = (query) => {
 };
 
 // Hàm search tổng hợp
-// Hàm search tổng hợp với debug chi tiết
 const searchRelevantData = async (query) => {
   console.log(`🎯 Đang tìm kiếm: "${query}"`);
 
@@ -176,17 +228,17 @@ const searchRelevantData = async (query) => {
   const companyResults = searchCompanyInfo(query);
   console.log(`📋 Kết quả tìm kiếm company info:`, companyResults);
 
+  // Phân loại kết quả companyResults
   results.policies = companyResults.filter(
     (item) =>
-      item.includes("Hủy") ||
-      item.includes("thanh toán") ||
-      item.includes("hoàn")
+      item.includes("Hủy trước") ||
+      item.includes("Quý khách chọn thanh toán") ||
+      item.includes("phương thức thanh toán")
   );
   results.companyInfo = companyResults.filter(
     (item) =>
       item.includes("Hotline") ||
-      item.includes("Địa chỉ") ||
-      item.includes("Email")
+      item.includes("Địa chỉ")
   );
 
   console.log("📦 Kết quả tổng hợp:", {
@@ -216,25 +268,25 @@ const formatContextForAI = (relevantData) => {
       context += `TOUR ${index + 1}:\n`;
       context += `- Tên: ${tour.title}\n`;
       context += `- Điểm đến: ${tour.destination}\n`;
+      context += `- Danh mục: ${tour.category || "Không xác định"}\n`;
       context += `- Thời gian: ${tour.duration || "Không xác định"}\n`;
       context += `- Giá gốc: ${
         tour.price ? tour.price.toLocaleString() + " VND" : "Liên hệ"
       }\n`;
 
-      // Thêm giá discount nếu có - SỬA LỖI Ở ĐÂY
+      // Thêm giá discount nếu có 
       if (tour.discountPrice && tour.discountPrice > 0) {
         context += `- Giá khuyến mãi: ${tour.discountPrice.toLocaleString()} VND\n`;
       }
-
-      context += `- Mô tả: ${tour.description}\n`;
+      
+      // Chỉ hiển thị mô tả ngắn
+      const shortDescription = tour.description ? tour.description.substring(0, 100) + '...' : 'Không có';
+      context += `- Mô tả (Ngắn): ${shortDescription}\n`;
 
       // Thêm tags nếu có
       if (tour.tags && tour.tags.length > 0) {
         context += `- Thẻ: ${tour.tags.join(", ")}\n`;
       }
-
-      // Thêm category - QUAN TRỌNG: hiển thị category
-      context += `- Danh mục: ${tour.category || "Không xác định"}\n`;
 
       // Thêm startDates nếu có
       if (tour.startDates && tour.startDates.length > 0) {
@@ -250,11 +302,10 @@ const formatContextForAI = (relevantData) => {
     });
   }
 
-  // Policies - SỬA LỖI: dùng relevantData.policies thay vì relevantData.companyInfo.policies
+  // Policies
   if (relevantData.policies.length > 0) {
     context += "=== CHÍNH SÁCH ===\n";
     relevantData.policies.forEach((policy) => {
-      // SỬA: relevantData.policies
       context += `- ${policy}\n`;
     });
     context += "\n";
