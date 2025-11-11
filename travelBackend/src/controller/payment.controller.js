@@ -40,7 +40,7 @@ const createPayment = asyncHandler(async (req, res) => {
 
   const paymentUrl = vnpay.buildPaymentUrl({
     vnp_Version: "2.1.0",
-    vnp_Amount: totalPrice,
+    vnp_Amount: totalPrice*100,
     vnp_TxnRef: idBooking,
     vnp_OrderInfo: `Thanh toan don hang #${idBooking}`,
     vnp_ReturnUrl: process.env.VNP_RETURNURL,
