@@ -17,63 +17,24 @@ const companyInfo = {
   },
 };
 
-// Sửa: Thêm async và await
 const searchTours = async (query) => {
   try {
     const lowercaseQuery = query.toLowerCase().trim();
     console.log(`🔍 Search query: "${query}" -> "${lowercaseQuery}"`);
 
-    // Mảng để chứa các nhóm điều kiện (Text conditions, Price conditions)
     const combinedConditions = [];
 
-    // --- 1. Nhóm điều kiện tìm kiếm VĂN BẢN/TỪ KHÓA ---
-    const textConditions = [];
-    const basicSearchFields = ['title', 'destination', 'description', 'category'];
-
-    // Tách từ khóa và tạo điều kiện tìm kiếm linh hoạt hơn
-    // Chỉ tìm kiếm các từ có độ dài >= 2
-    const keywords = lowercaseQuery.split(/\s+/).filter(word => word.length >= 2);
-    
-    // Nếu có từ khóa, tạo điều kiện $or cho các trường
-    if (keywords.length > 0) {
-        keywords.forEach(keyword => {
-            // Điều kiện cho mỗi từ khóa phải khớp với ÍT NHẤT 1 trường văn bản HOẶC tags
-            const keywordOrConditions = basicSearchFields.map(field => ({
-                [field]: { $regex: keyword, $options: 'i' }
-            }));
-            // Thêm điều kiện tags
-            keywordOrConditions.push({ tags: { $in: [new RegExp(keyword, 'i')] } });
-
-            // Gom tất cả các điều kiện $or của từ khóa này lại
-            textConditions.push({ $or: keywordOrConditions });
-        });
-    } else {
-        // Trường hợp người dùng chỉ gõ 1 từ hoặc chuỗi ngắn
-        // Sử dụng tìm kiếm cơ bản cho toàn bộ truy vấn nếu không có keywords tách rời
-         const keywordOrConditions = basicSearchFields.map(field => ({
-            [field]: { $regex: lowercaseQuery, $options: 'i' }
-        }));
-        keywordOrConditions.push({ tags: { $in: [new RegExp(lowercaseQuery, 'i')] } });
-        textConditions.push({ $or: keywordOrConditions });
-    }
-    
-    if (textConditions.length > 0) {
-        // Kết hợp các điều kiện từ khóa bằng $and (Tour phải chứa TẤT CẢ từ khóa)
-        combinedConditions.push({ $and: textConditions });
-    }
-    
-
-    // --- 2. Nhóm điều kiện tìm kiếm GIÁ ---
+    // --- 1. Nhóm điều kiện tìm kiếm GIÁ (Chạy trước để lọc từ khóa) ---
     const priceConditions = [];
+    
+    // *** FIX: Tạo danh sách từ khóa liên quan đến giá/ý định ***
+    const priceStopWords = ['giá', 'gia', 'rẻ', 're', 'triệu', 'tr', 'k', 'nghìn', 'vnd'];
     
     // Tìm kiếm theo từ khóa 'giá' hoặc 'rẻ'
     if (lowercaseQuery.includes('giá') || lowercaseQuery.includes('gia')) {
-      // Tìm tất cả tour có giá
       priceConditions.push({ price: { $exists: true, $ne: null } });
     }
-
     if (lowercaseQuery.includes('rẻ') || lowercaseQuery.includes('re')) {
-      // Tìm tour có giá dưới 5 triệu
       priceConditions.push({ 
         $or: [
           { price: { $lte: 5000000 } },
@@ -90,7 +51,6 @@ const searchTours = async (query) => {
 
       if (priceMatch[2].includes('triệu') || priceMatch[2].includes('tr')) {
         minPrice = amount * 1000000;
-        // Khoảng giá rộng hơn 
         maxPrice = (amount + 5) * 1000000; 
       } else if (priceMatch[2].includes('k') || priceMatch[2].includes('nghìn')) {
         minPrice = amount * 1000;
@@ -108,33 +68,73 @@ const searchTours = async (query) => {
     }
     
     if (priceConditions.length > 0) {
-        // Gom tất cả các điều kiện giá bằng $or (Tour khớp với ÍT NHẤT 1 điều kiện giá)
-        combinedConditions.push({ $or: priceConditions });
+      combinedConditions.push({ $or: priceConditions });
     }
 
 
-    console.log('📋 Search conditions:', JSON.stringify(combinedConditions, null, 2));
+    // --- 2. Nhóm điều kiện tìm kiếm VĂN BẢN/TỪ KHÓA ---
+    const textConditions = [];
+    const basicSearchFields = ['title', 'destination', 'description', 'category'];
+
+    // *** FIX: Lọc bỏ các từ khóa giá (priceStopWords) khỏi tìm kiếm văn bản ***
+    const keywords = lowercaseQuery.split(/\s+/)
+        .filter(word => 
+            word.length >= 2 && // Lọc từ ngắn
+            !priceStopWords.includes(word) && // Lọc từ khóa giá
+            (!priceMatch || !word.includes(priceMatch[1])) // Lọc con số đã khớp
+        ); 
+    
+    console.log(`[Debug] Filtered keywords for text search:`, keywords);
+
+    if (keywords.length > 0) {
+        keywords.forEach(keyword => {
+            const keywordOrConditions = basicSearchFields.map(field => ({
+                [field]: { $regex: keyword, $options: 'i' }
+            }));
+            keywordOrConditions.push({ tags: { $in: [new RegExp(keyword, 'i')] } });
+            textConditions.push({ $or: keywordOrConditions });
+        });
+        
+        // $and: Tour phải chứa TẤT CẢ các từ khóa văn bản (ví dụ: "đà" VÀ "lạt")
+        combinedConditions.push({ $and: textConditions });
+
+    } else if (keywords.length === 0 && priceConditions.length === 0) {
+        // *** FIX: Xử lý trường hợp người dùng chỉ gõ từ khóa ngắn hoặc không có ý định
+        // Ví dụ: "tour" hoặc "hi"
+        // Chỉ chạy nếu KHÔNG có từ khóa VÀ KHÔNG có điều kiện giá
+        console.log('[Debug] No keywords, no price. Searching for original query in text.');
+        const keywordOrConditions = basicSearchFields.map(field => ({
+            [field]: { $regex: lowercaseQuery, $options: 'i' }
+        }));
+        keywordOrConditions.push({ tags: { $in: [new RegExp(lowercaseQuery, 'i')] } });
+        combinedConditions.push({ $or: keywordOrConditions });
+    }
+    // Nếu keywords.length === 0 NHƯNG priceConditions.length > 0 (VD: "5 triệu")
+    // thì không làm gì cả, chỉ tìm theo giá.
+
+    
+    console.log('📋 Final Search conditions:', JSON.stringify(combinedConditions, null, 2));
 
     // --- 3. Thực hiện tìm kiếm TỔNG HỢP ---
     let tourData = [];
     
     if (combinedConditions.length === 2) {
-        // Trường hợp người dùng nhập VĂN BẢN VÀ GIÁ (VD: "tour Hà Nội 5 triệu")
-        // Ưu tiên tìm kiếm bằng $AND để kết quả chính xác hơn
+        // Có cả 2 điều kiện (Văn bản VÀ Giá)
         console.log('⭐ Thử tìm kiếm bằng $AND (Văn bản & Giá)...');
         tourData = await Tour.find({ $and: combinedConditions }).lean();
 
-        // Nếu không tìm thấy, thử tìm kiếm bằng $OR
+        // Nếu không tìm thấy, thử $OR (Văn bản HOẶC Giá)
         if (tourData.length === 0) {
-            console.log('⭐ Không tìm thấy, thử tìm kiếm bằng $OR (Văn bản hoặc Giá)...');
+            console.log('⭐ Không tìm thấy $AND, thử tìm kiếm bằng $OR (Văn bản hoặc Giá)...');
             tourData = await Tour.find({ $or: combinedConditions }).lean();
         }
     } else if (combinedConditions.length === 1) {
-        // Trường hợp chỉ có VĂN BẢN hoặc chỉ có GIÁ
-        console.log('⭐ Tìm kiếm bằng $OR (Chỉ Văn bản hoặc chỉ Giá)...');
+        // Chỉ có 1 loại điều kiện (Văn bản HOẶC Giá)
+        console.log('⭐ Tìm kiếm bằng 1 điều kiện (Chỉ Văn bản hoặc chỉ Giá)...');
+        // combinedConditions[0] đã là {$or: [...]} hoặc {$and: [...]}
         tourData = await Tour.find(combinedConditions[0]).lean(); 
     } else {
-        // Trường hợp không có điều kiện nào được kích hoạt
+        // Không có điều kiện nào
         console.log('❌ Không có điều kiện tìm kiếm cụ thể.');
         tourData = [];
     }
@@ -142,7 +142,6 @@ const searchTours = async (query) => {
     
     console.log(`✅ Tìm thấy ${tourData.length} tour`);
     
-    // Debug chi tiết kết quả tìm được (Chỉ hiển thị 5 tour đầu)
     if (tourData.length > 0) {
       console.log('📝 Tour tìm được (5 tour đầu):');
       tourData.slice(0, 5).forEach((tour, index) => {
@@ -158,6 +157,15 @@ const searchTours = async (query) => {
     console.error('❌ Error searching tours:', error);
     return [];
   }
+};
+
+
+module.exports = {
+  searchRelevantData,
+  formatContextForAI,
+  searchTours, // Export hàm đã sửa
+  searchCompanyInfo,
+  companyInfo,
 };
 
 // Sửa: Đổi tên hàm cho đúng
