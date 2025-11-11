@@ -10,17 +10,6 @@ const bookingCache = new nodeCache({ stdTTL: 600 });
 const createPayment = asyncHandler(async (req, res) => {
   const email = req.user.email;
   // 🟢 Lấy IP thật (quan trọng!)
-  let clientIp =
-    req.headers["x-forwarded-for"]?.split(",")[0] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    "127.0.0.1";
-
-  // Nếu là IPv6 (::1) thì chuyển về 127.0.0.1
-  if (clientIp === "::1" ||clientIp === '127.0.0.1') {
-    clientIp = "16.176.136.189";
-  }
-
   console.log("💡 Client IP:", clientIp);
   const {
     bookingSlots,
@@ -59,7 +48,7 @@ const createPayment = asyncHandler(async (req, res) => {
     vnp_BankCode: "NCB",
     vnp_CreateDate: dateFormat(new Date()),
     vnp_ExpireDate: dateFormat(new Date(Date.now() + 10 * 60 * 1000)),
-    vnp_IpAddr: clientIp,
+    vnp_IpAddr: "16.176.136.189",
   });
   console.log("✅ Generated URL:", paymentUrl);
   console.log("🔑 Secret Key:", process.env.VNP_HASHSECRET);
