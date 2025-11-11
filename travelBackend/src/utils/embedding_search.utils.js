@@ -159,15 +159,6 @@ const searchTours = async (query) => {
   }
 };
 
-
-module.exports = {
-  searchRelevantData,
-  formatContextForAI,
-  searchTours, // Export hàm đã sửa
-  searchCompanyInfo,
-  companyInfo,
-};
-
 // Sửa: Đổi tên hàm cho đúng
 const searchCompanyInfo = (query) => {
   const lowercaseQuery = query.toLowerCase();
