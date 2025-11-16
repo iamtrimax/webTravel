@@ -80,15 +80,15 @@ const vnpayReturn = async (req, res) => {
   console.log("verify.....", verify);
 
   if (!verify.isVerified) {
-    return res.redirect("https://webtravel.click/booking?status=invalid");
+    return res.redirect("http://localhost:5173/booking?status=invalid");
   }
 
   if (req.query.vnp_ResponseCode === "00") {
     // ✅ Thành công
-    return res.redirect("https://webtravel.click/booking?status=success");
+    return res.redirect("http://localhost:5173/booking?status=success");
   } else {
     // ❌ Thất bại / hủy
-    return res.redirect("https://webtravel.click/booking?status=failed");
+    return res.redirect("http://localhost:5173/booking?status=failed");
   }
 };
 const vnpayIpn = async (req, res) => {

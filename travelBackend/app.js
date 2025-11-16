@@ -16,7 +16,7 @@ const app = express();
 const PORT = 3000;
 app.use(
   cors({
-    origin: "https://webtravel.click", // Đúng với frontend
+    origin: 'https://webtravel.click', // Đúng với frontend
     credentials: true, // Quan trọng!
   })
 );
