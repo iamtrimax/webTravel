@@ -282,7 +282,7 @@ const formatContextForAI = (relevantData) => {
             context += `- Điểm đến: ${tour.destination}\n`;
             context += `- Danh mục: ${tour.category || "Không xác định"}\n`;
             context += `- Thời gian: ${tour.duration || "Không xác định"}\n`;
-            context += `- Điểm đón: ${tour.mettingPoint || "Không xác định"}\n`;
+            context += `- Điểm đón: ${tour.metingPoint || "Không xác định"}\n`;
             context += `- Giá gốc: ${
                 tour.price ? tour.price.toLocaleString() + " VND" : "Liên hệ"
             }\n`;
