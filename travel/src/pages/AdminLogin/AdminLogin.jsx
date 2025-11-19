@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import sumaryApi from '../../common';
 import Context from '../../Context/Context';
 import { setUser } from '../../Store/userSlice';
@@ -197,9 +197,9 @@ const AdminLogin = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                <Link to="/forgot-password" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
                   Quên mật khẩu?
-                </a>
+                </Link>
               </div>
             </div>
 

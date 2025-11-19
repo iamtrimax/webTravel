@@ -5,7 +5,12 @@ const asyncHandler = require("../middleware/asyncHandler");
 const { sendMail } = require("../Services/userService");
 const redis = require("../config/redisConfig");
 const emailModel = require("../models/email.model");
+const nodeCache = require("node-cache");
+const crypto = require("crypto");
+const { sendResetPasswordEmail } = require("../utils/email.utils");
 require("dotenv").config();
+
+const tokenCache = new nodeCache({ stdTTL: 900 });
 
 const generateAccessToken = (user, exp) => {
   return jwt.sign(
@@ -156,7 +161,6 @@ const getTotalUser = asyncHandler(async (req, res) => {
   });
 });
 
-
 const getUnreadEmailCount = asyncHandler(async (req, res) => {
   // Sử dụng countDocuments() để đếm số lượng tài liệu khớp với điều kiện isRead: false
   const unreadCount = await emailModel.countDocuments({
@@ -171,13 +175,61 @@ const getUnreadEmailCount = asyncHandler(async (req, res) => {
     },
   });
 });
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await userModel.findOne({ email });
+  if (!user) {
+    res.status(404);
+    return res.json({
+      message: "Link reset password đã được gửi đến email của bạn",
+      success: true,
+    });
+  }
+  const token = crypto.randomBytes(20).toString("hex");
+  await tokenCache.set(`reset:${user._id}`, token); // Token hợp lệ trong 15 phút
+  const resetLink = `https://webtravel.click/reset-password?token=${token}&id=${user._id}`;
+  // Gửi email với link reset password
+  await sendResetPasswordEmail(email, resetLink);
+  return res.status(200).json({
+    message: "Link reset password đã được gửi đến email của bạn",
+    success: true,
+  });
+});
+const resetPassword = asyncHandler(async (req, res) => {
+  const { userId, token, newPassword } = req.body;
+  const savedToken = tokenCache.get(`reset:${userId}`);
+  if (!savedToken || savedToken !== token) {
+    res.status(400);
+    throw new Error("Token không hợp lệ hoặc đã hết hạn");
+  }
+    // Lấy thông tin user trước khi update
+  const user = await userModel.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("Người dùng không tồn tại");
+  }
+  const salt = bcrypt.genSaltSync(10);
+  const hashedPassword = bcrypt.hashSync(newPassword, salt);
+  await userModel.findByIdAndUpdate(userId, {
+    password: hashedPassword,
+    refreshToken: null,
+  });
+  await tokenCache.del(`reset:${userId}`);
+  return res.status(200).json({
+    message: "Đặt lại mật khẩu thành công",
+    success: true,
+    role: user.role
+  });
+});
 module.exports = {
   userRegister,
   userLogin,
   userDetails,
   userLogout,
+  forgotPassword,
+  resetPassword,
   generateAccessToken,
   sentEmail,
   getTotalUser,
-  getUnreadEmailCount
+  getUnreadEmailCount,
 };

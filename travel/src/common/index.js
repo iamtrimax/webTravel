@@ -185,5 +185,13 @@ const sumaryApi = {
     url: `${url_api}/admin/get-daily-bookings`,
     method: "GET",
   },
+  forgotPassword: {
+    url: `${url_api}/forgot-password`,
+    method: "POST",
+  },
+  resetPassword: {
+    url: `${url_api}/reset-password`,
+    method: "POST",
+  },
 };
 export default sumaryApi;

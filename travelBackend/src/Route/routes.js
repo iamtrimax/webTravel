@@ -1,5 +1,5 @@
 const express = require("express");
-const { userRegister, userLogin, userDetails, userLogout, sentEmail, getTotalUser, getUnreadEmailCount} = require("../controller/user.controller");
+const { userRegister, userLogin, userDetails, userLogout, sentEmail, getTotalUser, getUnreadEmailCount, forgotPassword, resetPassword} = require("../controller/user.controller");
 const verifyAccessToken = require("../middleware/verifyAccessToken");
 const verifyAdmin = require("../middleware/verifyAdmin");
 const { createTour, getAllTours, updateTour, deleteTour, toggleTourStatus, getTourDetail, addReview, getAllReview, deleteReview, getTourFeature } = require("../controller/tour.controller");
@@ -18,6 +18,8 @@ route.get("/tours",getAllTours);
 route.get("/tours-top-rated", getTourFeature)
 route.get("/get-all-review/:id", getAllReview)
 route.get("/posts", getAllPosts);
+route.post("/forgot-password", forgotPassword);
+route.post("/reset-password", resetPassword);
 
 route.post("/sendmail", verifyAccessToken, sentEmail)
 route.get("/userdetails", verifyAccessToken, userDetails);

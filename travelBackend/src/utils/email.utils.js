@@ -179,4 +179,44 @@ const mailUpdateStartDate = async (tour, booking) => {
     await transporter.sendMail(mailOptions);
 };
 
-module.exports = { adminReplyEmail, mailAutoCancelBooking, mailPayConfirm, mailUpdateStartDate };
+const sendResetPasswordEmail = async (email, resetLink) => {
+  const mailOptions = {
+    from: `"Support Team" <${process.env.MAIL_USERNAME}>`,
+    to: email,
+    subject: "Yêu cầu đặt lại mật khẩu",
+    html: `
+      <div style="font-family: Arial; color: #333;">
+        <h2>Đặt lại mật khẩu</h2>
+        <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.</p>
+        <p>Nhấn vào nút bên dưới để tạo mật khẩu mới:</p>
+
+        <a 
+          href="${resetLink}" 
+          style="display:inline-block;
+                 padding:12px 20px;
+                 background:#007bff;
+                 color:#fff;
+                 border-radius:5px;
+                 text-decoration:none;
+                 font-weight:bold;
+                 margin: 20px 0;
+          ">
+          Đặt lại mật khẩu
+        </a>
+
+        <p>Nếu nút trên không hoạt động, hãy sao chép liên kết bên dưới và dán vào trình duyệt:</p>
+        <p style="word-break: break-all;">${resetLink}</p>
+
+        <p>Liên kết này sẽ hết hạn sau <strong>15 phút</strong>.</p>
+        <br/>
+        <p>Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email này.</p>
+        <p>Trân trọng,<br/>Đội ngũ hỗ trợ</p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+
+module.exports = { adminReplyEmail, mailAutoCancelBooking, mailPayConfirm, mailUpdateStartDate, sendResetPasswordEmail };

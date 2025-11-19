@@ -14,6 +14,8 @@ import TravelBlog from '../pages/TravelBlog/TravelBlog'
 import Contact from '../pages/Contact/Contact'
 import TourDetail from '../pages/TourDetail/TourDetail'
 import PaymentSuccess from '../pages/PaymentSuccess/PaymentSuccess'
+import ForgotPassword from '../pages/ForgotPassword/ForgotPassword'
+import ResetPassword from '../pages/ResetPassword/ResetPassword'
 
 const Routes = createBrowserRouter([
   {
@@ -67,6 +69,14 @@ const Routes = createBrowserRouter([
       {
         path:"payment/success",
         element:<PaymentSuccess/>
+      },
+      {
+        path:"forgot-password",
+        element:<ForgotPassword/>
+      },
+      {
+        path:"reset-password",
+        element:<ResetPassword/>
       }
     ]
   }
